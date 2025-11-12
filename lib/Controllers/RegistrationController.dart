@@ -33,6 +33,7 @@ class RegistrationController extends GetxController {
   final idBack = Rx<File?>(null);
 
   // Step 4: Financial Info
+  final userType = ''.obs;
   final sourceOfIncome = ''.obs;
   final martialStatus = ''.obs;
 
@@ -135,6 +136,10 @@ class RegistrationController extends GetxController {
         return true;
 
       case 3:
+        if (userType.value.isEmpty) {
+          _showError('Please select your account type');
+          return false;
+        }
         if (sourceOfIncome.value.isEmpty) {
           _showError('Please select your source of income');
           return false;

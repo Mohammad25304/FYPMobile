@@ -545,6 +545,19 @@ class Registration extends GetView<RegistrationController> {
       subtitle: 'Tell us about your financial background',
       children: [
         _CustomDropdown(
+          value: controller.userType.value.isEmpty
+              ? null
+              : controller.userType.value,
+          label: 'Account Type',
+          icon: Icons.account_box,
+          items: const [
+            'Personal Account',
+            'Business Account',
+            'Company Account',
+          ],
+          onChanged: (val) => controller.userType.value = val!,
+        ),
+        _CustomDropdown(
           value: controller.sourceOfIncome.value.isEmpty
               ? null
               : controller.sourceOfIncome.value,
@@ -807,7 +820,7 @@ class _CustomDropdown extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: DropdownButtonFormField<String>(
-        value: value,
+        initialValue: value,
         items: items
             .map((item) => DropdownMenuItem(value: item, child: Text(item)))
             .toList(),
