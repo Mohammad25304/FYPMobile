@@ -1,6 +1,8 @@
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'dart:io';
 
 class RegistrationController extends GetxController {
@@ -10,9 +12,11 @@ class RegistrationController extends GetxController {
   // Step 1: Personal Info
   final firstName = TextEditingController();
   final lastName = TextEditingController();
+  final fatherName = TextEditingController();
+  final motherFullName = TextEditingController();
   final dob = TextEditingController();
   final gender = ''.obs;
-  final PlaceOfBirth = TextEditingController();
+  final placeOfBirth = TextEditingController();
   final country = ''.obs;
   final city = TextEditingController();
   final phone = TextEditingController();
@@ -30,8 +34,7 @@ class RegistrationController extends GetxController {
 
   // Step 4: Financial Info
   final sourceOfIncome = ''.obs;
-  final fatherName = TextEditingController();
-  final motherName = TextEditingController();
+  final martialStatus = ''.obs;
 
   // Step 5: Account Setup
   final password = TextEditingController();
@@ -58,13 +61,21 @@ class RegistrationController extends GetxController {
   // Validation for current step
   bool validateCurrentStep() {
     switch (currentStep.value) {
-      case 0: // Personal Info
+      case 0:
         if (firstName.text.isEmpty) {
           _showError('Please enter your first name');
           return false;
         }
         if (lastName.text.isEmpty) {
           _showError('Please enter your last name');
+          return false;
+        }
+        if (fatherName.text.isEmpty) {
+          _showError("Please enter your father name");
+          return false;
+        }
+        if (motherFullName.text.isEmpty) {
+          _showError("Please enter your mother name");
           return false;
         }
         if (dob.text.isEmpty) {
@@ -75,7 +86,7 @@ class RegistrationController extends GetxController {
           _showError('Please select your gender');
           return false;
         }
-        if (PlaceOfBirth.text.isEmpty) {
+        if (placeOfBirth.text.isEmpty) {
           _showError('Please enter your place of birth');
           return false;
         }
@@ -97,14 +108,14 @@ class RegistrationController extends GetxController {
         }
         return true;
 
-      case 1: // Face Verification
+      case 1:
         if (faceSelfie.value == null) {
           _showError('Please take a live selfie for verification');
           return false;
         }
         return true;
 
-      case 2: // Identity Info
+      case 2:
         if (nationality.value.isEmpty) {
           _showError('Please select your nationality');
           return false;
@@ -123,22 +134,19 @@ class RegistrationController extends GetxController {
         }
         return true;
 
-      case 3: // Financial Info
+      case 3:
         if (sourceOfIncome.value.isEmpty) {
           _showError('Please select your source of income');
           return false;
         }
-        if (fatherName.text.isEmpty) {
-          _showError("Please enter your father's name");
-          return false;
-        }
-        if (motherName.text.isEmpty) {
-          _showError("Please enter your mother's name");
+
+        if (martialStatus.value.isEmpty) {
+          _showError('Please enter your martial status');
           return false;
         }
         return true;
 
-      case 4: // Account Setup
+      case 4:
         if (password.text.isEmpty || password.text.length < 8) {
           _showError('Password must be at least 8 characters');
           return false;
@@ -158,7 +166,7 @@ class RegistrationController extends GetxController {
     }
   }
 
-  // Helper method to show error messages
+  // Helper messages
   void _showError(String message) {
     Get.snackbar(
       'Error',
@@ -172,7 +180,6 @@ class RegistrationController extends GetxController {
     );
   }
 
-  // Helper method to show success messages
   void _showSuccess(String message) {
     Get.snackbar(
       'Success',
@@ -186,14 +193,13 @@ class RegistrationController extends GetxController {
     );
   }
 
-  // Pick image from gallery (for ID documents)
+  // Pick image from gallery
   Future<void> pickImage(Rx<File?> imageFile) async {
     try {
       final XFile? image = await _picker.pickImage(
         source: ImageSource.gallery,
         imageQuality: 80,
       );
-
       if (image != null) {
         imageFile.value = File(image.path);
         _showSuccess('Image uploaded successfully');
@@ -203,16 +209,14 @@ class RegistrationController extends GetxController {
     }
   }
 
-  // Capture image from camera (for live selfie)
+  // Capture selfie
   Future<void> captureImage(Rx<File?> imageFile) async {
     try {
       final XFile? image = await _picker.pickImage(
         source: ImageSource.camera,
         imageQuality: 80,
-        preferredCameraDevice:
-            CameraDevice.front, // Use front camera for selfie
+        preferredCameraDevice: CameraDevice.front,
       );
-
       if (image != null) {
         imageFile.value = File(image.path);
         _showSuccess('Selfie captured successfully');
@@ -222,12 +226,12 @@ class RegistrationController extends GetxController {
     }
   }
 
-  // Register user
+  // 🔗 Laravel API Integration
   Future<void> registerUser() async {
     if (!validateCurrentStep()) return;
 
     try {
-      // Show loading dialog
+      // Show loading
       Get.dialog(
         const Center(
           child: CircularProgressIndicator(
@@ -237,84 +241,104 @@ class RegistrationController extends GetxController {
         barrierDismissible: false,
       );
 
-      // TODO: Implement your registration API call here
-      // Example API payload:
-      final registrationData = {
-        // Personal Info
+      final url = Uri.parse(
+        "http://192.168.1.65:8000/api/register",
+      ); // Adjust for your setup
+      var request = http.MultipartRequest('POST', url);
+
+      request.fields.addAll({
         'firstName': firstName.text,
         'lastName': lastName.text,
-        'dob': dob.text,
-        'gender': gender.value,
-        'placeOfBirth': PlaceOfBirth.text,
+        'date_of_birth': dob.text,
+        'gender': gender.value.toLowerCase(),
+        'place_of_birth': placeOfBirth.text,
         'country': country.value,
         'city': city.text,
-        'phone': phone.text,
+        'phone_number': phone.text,
         'email': email.text,
-
-        // Identity Info
-        'nationality': nationality.value,
-        'idType': idType.value,
-        'idNumber': idNumber.text,
-
-        // Financial Info
-        'sourceOfIncome': sourceOfIncome.value,
-        'fatherName': fatherName.text,
-        'motherName': motherName.text,
-
-        // Account Setup
+        'Nationality': nationality.value,
+        'id_type': idType.value,
+        'id_number': idNumber.text,
+        'father_name': fatherName.text,
+        'mother_name': motherFullName.text,
+        'income_source': sourceOfIncome.value,
+        'user_type': 'individual',
         'password': password.text,
-      };
+        'password_confirmation': confirmPassword.text,
+      });
 
-      // TODO: Upload images (idFront, idBack, faceSelfie) to your server
-      // Example:
-      // await ApiService.uploadImage('faceSelfie', faceSelfie.value);
-      // await ApiService.uploadImage('idFront', idFront.value);
-      // await ApiService.uploadImage('idBack', idBack.value);
+      print("📡 Sending registration request to Laravel...");
+      print("➡️ URL: $url");
+      print("📦 Data: ${request.fields}");
 
-      // TODO: Send registration data to your API
-      // await ApiService.register(registrationData);
+      // Attach images
+      if (faceSelfie.value != null) {
+        request.files.add(
+          await http.MultipartFile.fromPath(
+            'profile_photo',
+            faceSelfie.value!.path,
+          ),
+        );
+      }
+      if (idFront.value != null) {
+        request.files.add(
+          await http.MultipartFile.fromPath('id_front', idFront.value!.path),
+        );
+      }
+      if (idBack.value != null) {
+        request.files.add(
+          await http.MultipartFile.fromPath('id_back', idBack.value!.path),
+        );
+      }
 
-      // Simulate API call
-      await Future.delayed(const Duration(seconds: 2));
+      var response = await request.send();
+      var responseBody = await response.stream.bytesToString();
+      var data = json.decode(responseBody);
 
-      // Close loading dialog
-      Get.back();
+      Get.back(); // close loading
 
-      // Show success message
-      Get.snackbar(
-        'Success',
-        'Account created successfully! Please check your email to verify your account.',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.green,
-        colorText: Colors.white,
-        margin: const EdgeInsets.all(16),
-        borderRadius: 8,
-        duration: const Duration(seconds: 4),
-      );
+      if (response.statusCode == 201) {
+        Get.snackbar(
+          'Success',
+          data['message'] ??
+              'User registered successfully! Please verify your account via OTP.',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+          margin: const EdgeInsets.all(16),
+          borderRadius: 8,
+          duration: const Duration(seconds: 4),
+        );
 
-      // Navigate to login or home page after a short delay
-      await Future.delayed(const Duration(seconds: 2));
-      // Get.offAllNamed('/login');
+        // Navigate to OTP verification page (optional)
+        // Get.toNamed('/verify-otp', arguments: email.text);
+      } else {
+        Get.snackbar(
+          'Error',
+          data['message'] ?? 'Registration failed!',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+      }
     } catch (e) {
-      // Close loading dialog
       Get.back();
-      _showError('Registration failed: $e');
+      _showError('Failed to connect to the server: $e');
     }
   }
 
   @override
   void onClose() {
-    // Dispose controllers
     firstName.dispose();
     lastName.dispose();
     dob.dispose();
-    PlaceOfBirth.dispose();
+    placeOfBirth.dispose();
     city.dispose();
     phone.dispose();
     email.dispose();
     idNumber.dispose();
     fatherName.dispose();
-    motherName.dispose();
+    motherFullName.dispose();
     password.dispose();
     confirmPassword.dispose();
     super.onClose();
