@@ -14,7 +14,7 @@ class RegistrationController extends GetxController {
   final lastName = TextEditingController();
   final fatherName = TextEditingController();
   final motherFullName = TextEditingController();
-  final dob = TextEditingController();
+  final age = TextEditingController();
   final gender = ''.obs;
   final placeOfBirth = TextEditingController();
   final country = ''.obs;
@@ -79,8 +79,8 @@ class RegistrationController extends GetxController {
           _showError("Please enter your mother name");
           return false;
         }
-        if (dob.text.isEmpty) {
-          _showError('Please enter your date of birth');
+        if (age.text.isEmpty) {
+          _showError('Sorry You are under 18 You can not create a account ');
           return false;
         }
         if (gender.value.isEmpty) {
@@ -110,13 +110,6 @@ class RegistrationController extends GetxController {
         return true;
 
       case 1:
-        if (faceSelfie.value == null) {
-          _showError('Please take a live selfie for verification');
-          return false;
-        }
-        return true;
-
-      case 2:
         if (nationality.value.isEmpty) {
           _showError('Please select your nationality');
           return false;
@@ -131,6 +124,13 @@ class RegistrationController extends GetxController {
         }
         if (idFront.value == null || idBack.value == null) {
           _showError('Please upload both front and back of your ID');
+          return false;
+        }
+        return true;
+
+      case 2:
+        if (faceSelfie.value == null) {
+          _showError('Please take a live selfie for verification');
           return false;
         }
         return true;
@@ -152,8 +152,10 @@ class RegistrationController extends GetxController {
         return true;
 
       case 4:
-        if (password.text.isEmpty || password.text.length < 8) {
-          _showError('Password must be at least 8 characters');
+        if (password.text.isEmpty ||
+            password.text.length != 4 ||
+            !RegExp(r'^\d+$').hasMatch(password.text)) {
+          _showError('Password must be only 4 numbers');
           return false;
         }
         if (password.text != confirmPassword.text) {
@@ -254,7 +256,7 @@ class RegistrationController extends GetxController {
       request.fields.addAll({
         'firstName': firstName.text,
         'lastName': lastName.text,
-        'date_of_birth': dob.text,
+        'age': age.text,
         'gender': gender.value.toLowerCase(),
         'place_of_birth': placeOfBirth.text,
         'country': country.value,
@@ -332,11 +334,64 @@ class RegistrationController extends GetxController {
     }
   }
 
+  Future<void> registeruser() async {
+    if (!validateCurrentStep()) return;
+
+    try {
+      // Show loading
+      Get.dialog(
+        const Center(
+          child: CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF1E88E5)),
+          ),
+        ),
+        barrierDismissible: false,
+      );
+
+      // TODO: Your API call here
+      // final response = await http.post(...);
+
+      // Simulate API call
+      await Future.delayed(const Duration(seconds: 2));
+
+      // Close loading
+      Get.back();
+
+      // Show success
+      Get.snackbar(
+        'Success',
+        'Registration successful! Please verify your email.',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+        margin: const EdgeInsets.all(16),
+        borderRadius: 8,
+        duration: const Duration(seconds: 2),
+      );
+
+      // Navigate to OTP page
+      await Future.delayed(const Duration(seconds: 1));
+      Get.offAllNamed(
+        '/otp',
+        arguments: {'email': email.text, 'phone': phone.text},
+      );
+    } catch (e) {
+      Get.back();
+      Get.snackbar(
+        'Error',
+        'Registration failed: $e',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    }
+  }
+
   @override
   void onClose() {
     firstName.dispose();
     lastName.dispose();
-    dob.dispose();
+    age.dispose();
     placeOfBirth.dispose();
     city.dispose();
     phone.dispose();

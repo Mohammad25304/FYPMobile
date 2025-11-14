@@ -25,6 +25,7 @@ class Registration extends GetView<RegistrationController> {
         child: Obx(() {
           return Column(
             children: [
+              _buildLoginPrompt(),
               _buildProgressIndicator(),
               Expanded(
                 child: SingleChildScrollView(
@@ -38,6 +39,41 @@ class Registration extends GetView<RegistrationController> {
             ],
           );
         }),
+      ),
+    );
+  }
+
+  Widget _buildLoginPrompt() {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border(bottom: BorderSide(color: Colors.grey[200]!, width: 1)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            'Already have an account?',
+            style: TextStyle(color: Colors.grey[700], fontSize: 14),
+          ),
+          const SizedBox(width: 4),
+          InkWell(
+            onTap: () {
+              // Navigate to login page
+              Get.toNamed('/login');
+            },
+            child: const Text(
+              'Login',
+              style: TextStyle(
+                color: Color(0xFF1E88E5),
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                decoration: TextDecoration.underline,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -136,9 +172,9 @@ class Registration extends GetView<RegistrationController> {
       case 0:
         return 'Personal';
       case 1:
-        return 'Face Verify';
-      case 2:
         return 'Identity';
+      case 2:
+        return 'Face Verify';
       case 3:
         return 'Financial';
       case 4:
@@ -153,9 +189,9 @@ class Registration extends GetView<RegistrationController> {
       case 0:
         return _buildPersonalInfoStep();
       case 1:
-        return _buildFaceVerificationStep();
-      case 2:
         return _buildIdentityInfoStep();
+      case 2:
+        return _buildFaceVerificationStep();
       case 3:
         return _buildFinancialInfoStep();
       case 4:
@@ -193,10 +229,10 @@ class Registration extends GetView<RegistrationController> {
         ),
 
         _CustomTextField(
-          controller: controller.dob,
-          label: 'Date of Birth',
-          icon: Icons.calendar_today_outlined,
-          hint: 'DD/MM/YYYY',
+          controller: controller.age,
+          label: 'Age',
+          icon: Icons.numbers,
+          keyboardType: TextInputType.number,
         ),
         _CustomDropdown(
           value: controller.gender.value.isEmpty
@@ -247,7 +283,8 @@ class Registration extends GetView<RegistrationController> {
       title: 'Identity Verification',
       subtitle: 'Upload your identification documents',
       children: [
-        Expanded(
+        SizedBox(
+          width: double.infinity,
           child: _CustomDropdown(
             value: controller.nationality.value.isEmpty
                 ? null
@@ -454,6 +491,7 @@ class Registration extends GetView<RegistrationController> {
             onChanged: (String? value) => controller.nationality.value = value!,
           ),
         ),
+
         _CustomDropdown(
           value: controller.idType.value.isEmpty
               ? null
@@ -601,14 +639,14 @@ class Registration extends GetView<RegistrationController> {
           label: 'Password',
           icon: Icons.lock_outline,
           obscureText: true,
-          keyboardType: TextInputType.numberWithOptions(),
+          keyboardType: TextInputType.number,
         ),
         _CustomTextField(
           controller: controller.confirmPassword,
           label: 'Confirm Password',
           icon: Icons.lock_outline,
           obscureText: true,
-          keyboardType: TextInputType.numberWithOptions(),
+          keyboardType: TextInputType.number,
         ),
         const SizedBox(height: 10),
         Obx(
@@ -820,7 +858,7 @@ class _CustomDropdown extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: DropdownButtonFormField<String>(
-        initialValue: value,
+        value: value,
         items: items
             .map((item) => DropdownMenuItem(value: item, child: Text(item)))
             .toList(),
