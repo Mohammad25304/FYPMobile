@@ -1,9 +1,14 @@
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:io';
+import 'package:camera/camera.dart';
+import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class RegistrationController extends GetxController {
   // Observable for current step
@@ -25,6 +30,22 @@ class RegistrationController extends GetxController {
   // Step 2: Face Verification
   final faceSelfie = Rx<File?>(null);
 
+  // ML Kit Face Detection
+  CameraController? cameraController;
+  final faceDetector = FaceDetector(
+    options: FaceDetectorOptions(
+      enableLandmarks: true,
+      enableContours: true,
+      enableClassification: true,
+      minFaceSize: 0.15,
+    ),
+  );
+  var isFaceDetected = false.obs;
+  var faceDetectionMessage = 'Position your face in the frame'.obs;
+  var isCameraInitialized = false.obs;
+  var isDetecting = false;
+  var isCapturing = false.obs;
+
   // Step 3: Identity Info
   final nationality = ''.obs;
   final idType = ''.obs;
@@ -43,6 +64,283 @@ class RegistrationController extends GetxController {
   final agreeTerms = false.obs;
 
   final ImagePicker _picker = ImagePicker();
+
+  // Initialize camera for face detection
+  Future<void> initializeCamera() async {
+    try {
+      // Request camera permission
+      final status = await Permission.camera.request();
+      if (!status.isGranted) {
+        _showError('Camera permission is required for face verification');
+        return;
+      }
+
+      final cameras = await availableCameras();
+      final frontCamera = cameras.firstWhere(
+        (camera) => camera.lensDirection == CameraLensDirection.front,
+        orElse: () => cameras.first,
+      );
+
+      cameraController = CameraController(
+        frontCamera,
+        ResolutionPreset.medium,
+        enableAudio: false,
+        imageFormatGroup: Platform.isAndroid
+            ? ImageFormatGroup.nv21
+            : ImageFormatGroup.bgra8888,
+      );
+
+      await cameraController!.initialize();
+      isCameraInitialized.value = true;
+
+      // Start image stream for face detection
+      await cameraController!.startImageStream((CameraImage image) async {
+        if (!isDetecting && !isCapturing.value) {
+          isDetecting = true;
+          await detectFaceInImage(image);
+          isDetecting = false;
+        }
+      });
+    } catch (e) {
+      _showError('Camera initialization failed: $e');
+      print('Camera error: $e');
+    }
+  }
+
+  // Get proper image rotation based on device orientation
+  InputImageRotation _getImageRotation(CameraImage image) {
+    if (cameraController == null) return InputImageRotation.rotation0deg;
+
+    final camera = cameraController!.description;
+    final sensorOrientation = camera.sensorOrientation;
+
+    // For front camera, we need to adjust rotation
+    InputImageRotation rotation;
+
+    if (Platform.isIOS) {
+      rotation = InputImageRotation.values[(sensorOrientation ~/ 90) % 4];
+    } else {
+      // Android
+      final rotationCompensation = sensorOrientation;
+      rotation = InputImageRotation.values[rotationCompensation ~/ 90];
+    }
+
+    return rotation;
+  }
+
+  // Detect face in camera stream
+  Future<void> detectFaceInImage(CameraImage image) async {
+    try {
+      final WriteBuffer allBytes = WriteBuffer();
+      for (Plane plane in image.planes) {
+        allBytes.putUint8List(plane.bytes);
+      }
+      final bytes = allBytes.done().buffer.asUint8List();
+
+      final inputImage = InputImage.fromBytes(
+        bytes: bytes,
+        metadata: InputImageMetadata(
+          size: Size(image.width.toDouble(), image.height.toDouble()),
+          rotation: _getImageRotation(image),
+          format: Platform.isAndroid
+              ? InputImageFormat.nv21
+              : InputImageFormat.bgra8888,
+          bytesPerRow: image.planes[0].bytesPerRow,
+        ),
+      );
+
+      final List<Face> faces = await faceDetector.processImage(inputImage);
+
+      if (faces.isEmpty) {
+        isFaceDetected.value = false;
+        faceDetectionMessage.value =
+            'No face detected - please position yourself';
+      } else if (faces.length > 1) {
+        isFaceDetected.value = false;
+        faceDetectionMessage.value =
+            'Multiple faces detected - ensure only you are visible';
+      } else {
+        final face = faces.first;
+
+        // Check face quality
+        if (_isFaceQualityGood(face)) {
+          isFaceDetected.value = true;
+          faceDetectionMessage.value = '✓ Face detected! Ready to capture';
+        } else {
+          isFaceDetected.value = false;
+          faceDetectionMessage.value = _getFaceQualityMessage(face);
+        }
+      }
+    } catch (e) {
+      print('Face detection error: $e');
+    }
+  }
+
+  // Check if face quality is good
+  bool _isFaceQualityGood(Face face) {
+    // Check if face is centered and large enough
+    final boundingBox = face.boundingBox;
+    final faceArea = boundingBox.width * boundingBox.height;
+    final imageArea = 640.0 * 480.0; // approximate camera resolution
+    final faceRatio = faceArea / imageArea;
+
+    // Face should occupy 15-60% of the frame
+    if (faceRatio < 0.15 || faceRatio > 0.60) {
+      return false;
+    }
+
+    // Check head rotation (should be relatively frontal)
+    final headEulerAngleY = face.headEulerAngleY; // Horizontal rotation
+    final headEulerAngleZ = face.headEulerAngleZ; // Tilt
+
+    // FIXED: Check if null OR value exceeds threshold
+    if (headEulerAngleY == null || headEulerAngleY!.abs() > 20) {
+      return false;
+    }
+
+    if (headEulerAngleZ == null || headEulerAngleZ!.abs() > 15) {
+      return false;
+    }
+
+    // Check if eyes are open (if classification is available)
+    final leftEyeOpenProbability = face.leftEyeOpenProbability;
+    final rightEyeOpenProbability = face.rightEyeOpenProbability;
+
+    if (leftEyeOpenProbability == null || leftEyeOpenProbability! < 0.5) {
+      return false;
+    }
+
+    if (rightEyeOpenProbability == null || rightEyeOpenProbability! < 0.5) {
+      return false;
+    }
+
+    return true;
+  }
+
+  // Get specific face quality message
+  String _getFaceQualityMessage(Face face) {
+    final boundingBox = face.boundingBox;
+    final faceArea = boundingBox.width * boundingBox.height;
+    final imageArea = 640.0 * 480.0;
+    final faceRatio = faceArea / imageArea;
+
+    if (faceRatio < 0.15) {
+      return 'Move closer to the camera';
+    }
+    if (faceRatio > 0.60) {
+      return 'Move back from the camera';
+    }
+
+    final headEulerAngleY = face.headEulerAngleY;
+    if (headEulerAngleY == null || headEulerAngleY!.abs() > 20) {
+      return 'Look straight at the camera';
+    }
+
+    final headEulerAngleZ = face.headEulerAngleZ;
+    if (headEulerAngleZ == null || headEulerAngleZ!.abs() > 15) {
+      return 'Keep your head straight';
+    }
+
+    final leftEyeOpenProbability = face.leftEyeOpenProbability;
+    final rightEyeOpenProbability = face.rightEyeOpenProbability;
+
+    if (leftEyeOpenProbability == null ||
+        rightEyeOpenProbability == null ||
+        leftEyeOpenProbability! < 0.5 ||
+        rightEyeOpenProbability! < 0.5) {
+      return 'Please keep both eyes open';
+    }
+
+    return 'Adjust your position';
+  }
+
+  // Capture photo with face validation
+  Future<void> captureFacePhoto() async {
+    if (!isFaceDetected.value) {
+      _showError('Please wait for face detection to complete');
+      return;
+    }
+
+    if (isCapturing.value) {
+      return; // Already capturing
+    }
+
+    try {
+      isCapturing.value = true;
+
+      if (cameraController == null || !cameraController!.value.isInitialized) {
+        _showError('Camera not initialized');
+        isCapturing.value = false;
+        return;
+      }
+
+      // Stop the image stream and wait for it to complete
+      if (cameraController!.value.isStreamingImages) {
+        await cameraController!.stopImageStream();
+        // Wait a bit for the stream to fully stop
+        await Future.delayed(const Duration(milliseconds: 300));
+      }
+
+      // Capture the image
+      final XFile image = await cameraController!.takePicture();
+
+      // Validate the captured image has a face
+      final inputImage = InputImage.fromFilePath(image.path);
+      final faces = await faceDetector.processImage(inputImage);
+
+      if (faces.isEmpty) {
+        _showError('No face detected in captured photo. Please try again.');
+        isCapturing.value = false;
+        // Restart image stream
+        await cameraController!.startImageStream((CameraImage img) async {
+          if (!isDetecting && !isCapturing.value) {
+            isDetecting = true;
+            await detectFaceInImage(img);
+            isDetecting = false;
+          }
+        });
+        return;
+      }
+
+      faceSelfie.value = File(image.path);
+      _showSuccess('Face verified and captured successfully!');
+
+      // Dispose camera after successful capture
+      await disposeCamera();
+    } catch (e) {
+      _showError('Failed to capture photo: $e');
+      print('Capture error: $e');
+      isCapturing.value = false;
+    } finally {
+      isCapturing.value = false;
+    }
+  }
+
+  // Dispose camera resources
+  Future<void> disposeCamera() async {
+    if (cameraController != null) {
+      try {
+        if (cameraController!.value.isStreamingImages) {
+          await cameraController!.stopImageStream();
+        }
+        await cameraController!.dispose();
+      } catch (e) {
+        print('Error disposing camera: $e');
+      } finally {
+        cameraController = null;
+        isCameraInitialized.value = false;
+        isCapturing.value = false;
+      }
+    }
+  }
+
+  // Retake photo
+  Future<void> retakeFacePhoto() async {
+    faceSelfie.value = null;
+    isFaceDetected.value = false;
+    isCapturing.value = false;
+    await initializeCamera();
+  }
 
   // Navigation methods
   void nextStep() {
@@ -80,7 +378,13 @@ class RegistrationController extends GetxController {
           return false;
         }
         if (age.text.isEmpty) {
-          _showError('Sorry You are under 18 You can not create a account ');
+          _showError('Please enter your age');
+          return false;
+        }
+        // Check if age is valid number and >= 18
+        final ageValue = int.tryParse(age.text);
+        if (ageValue == null || ageValue < 18) {
+          _showError('Sorry, you must be 18 or older to create an account');
           return false;
         }
         if (gender.value.isEmpty) {
@@ -155,7 +459,7 @@ class RegistrationController extends GetxController {
         if (password.text.isEmpty ||
             password.text.length != 4 ||
             !RegExp(r'^\d+$').hasMatch(password.text)) {
-          _showError('Password must be only 4 numbers');
+          _showError('Password must be exactly 4 numbers');
           return false;
         }
         if (password.text != confirmPassword.text) {
@@ -216,7 +520,7 @@ class RegistrationController extends GetxController {
     }
   }
 
-  // Capture selfie
+  // Legacy capture method (keep for ID photos)
   Future<void> captureImage(Rx<File?> imageFile) async {
     try {
       final XFile? image = await _picker.pickImage(
@@ -226,7 +530,7 @@ class RegistrationController extends GetxController {
       );
       if (image != null) {
         imageFile.value = File(image.path);
-        _showSuccess('Selfie captured successfully');
+        _showSuccess('Image captured successfully');
       }
     } catch (e) {
       _showError('Failed to capture image: $e');
@@ -248,9 +552,7 @@ class RegistrationController extends GetxController {
         barrierDismissible: false,
       );
 
-      final url = Uri.parse(
-        "http://192.168.1.65:8000/api/register",
-      ); // Adjust for your setup
+      final url = Uri.parse("http://192.168.1.65:8000/api/register");
       var request = http.MultipartRequest('POST', url);
 
       request.fields.addAll({
@@ -317,7 +619,7 @@ class RegistrationController extends GetxController {
           duration: const Duration(seconds: 4),
         );
 
-        // Navigate to OTP verification page (optional)
+        // Navigate to OTP verification page
         // Get.toNamed('/verify-otp', arguments: email.text);
       } else {
         Get.snackbar(
@@ -331,59 +633,6 @@ class RegistrationController extends GetxController {
     } catch (e) {
       Get.back();
       _showError('Failed to connect to the server: $e');
-    }
-  }
-
-  Future<void> registeruser() async {
-    if (!validateCurrentStep()) return;
-
-    try {
-      // Show loading
-      Get.dialog(
-        const Center(
-          child: CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF1E88E5)),
-          ),
-        ),
-        barrierDismissible: false,
-      );
-
-      // TODO: Your API call here
-      // final response = await http.post(...);
-
-      // Simulate API call
-      await Future.delayed(const Duration(seconds: 2));
-
-      // Close loading
-      Get.back();
-
-      // Show success
-      Get.snackbar(
-        'Success',
-        'Registration successful! Please verify your email.',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.green,
-        colorText: Colors.white,
-        margin: const EdgeInsets.all(16),
-        borderRadius: 8,
-        duration: const Duration(seconds: 2),
-      );
-
-      // Navigate to OTP page
-      await Future.delayed(const Duration(seconds: 1));
-      Get.offAllNamed(
-        '/otp',
-        arguments: {'email': email.text, 'phone': phone.text},
-      );
-    } catch (e) {
-      Get.back();
-      Get.snackbar(
-        'Error',
-        'Registration failed: $e',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
     }
   }
 
@@ -401,6 +650,8 @@ class RegistrationController extends GetxController {
     motherFullName.dispose();
     password.dispose();
     confirmPassword.dispose();
+    faceDetector.close();
+    disposeCamera();
     super.onClose();
   }
 }
