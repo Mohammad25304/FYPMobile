@@ -16,7 +16,7 @@ class MyApp extends StatelessWidget {
     return GetMaterialApp(
       title: 'CashPilot',
       theme: ThemeData(primarySwatch: Colors.lightBlue, useMaterial3: true),
-      initialRoute: AppRoute.Register,
+      initialRoute: AppRoute.register,
       getPages: AppPage.pages,
     );
   }

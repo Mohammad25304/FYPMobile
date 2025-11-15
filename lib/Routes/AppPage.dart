@@ -10,17 +10,17 @@ import 'package:cashpilot/Views/Login.dart';
 class AppPage {
   static final List<GetPage> pages = [
     GetPage(
-      name: AppRoute.Register,
+      name: AppRoute.register,
       page: () => const Registration(),
       binding: RegistrationBinding(),
     ),
 
     GetPage(
-      name: AppRoute.OTP,
+      name: AppRoute.otp,
       page: () => OtpVerificationPage(),
       binding: OtpVerificationBinding(),
     ),
 
-    GetPage(name: AppRoute.Login, page: () => Login(), binding: LoginBinding()),
+    GetPage(name: AppRoute.login, page: () => Login(), binding: LoginBinding()),
   ];
 }

@@ -1,5 +1,5 @@
 class AppRoute {
-  static const String Register = '/register';
-  static const String OTP = '/otp';
-  static const String Login = '/login';
+  static const String register = '/register';
+  static const String otp = '/otp';
+  static const String login = '/login';
 }

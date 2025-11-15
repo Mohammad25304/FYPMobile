@@ -255,7 +255,7 @@ class Registration extends GetView<RegistrationController> {
               : controller.country.value,
           label: 'Country',
           icon: Icons.public_outlined,
-          items: const ['USA', 'Lebanon', 'Other'],
+          items: const ['Lebanon', 'USA', 'Other'],
           onChanged: (String? value) => controller.country.value = value!,
         ),
         _CustomTextField(
@@ -496,12 +496,13 @@ class Registration extends GetView<RegistrationController> {
               : controller.idType.value,
           label: 'ID Type',
           icon: Icons.badge_outlined,
-          items: const ['National ID', 'Passport'],
+          items: const ["passport", "national_id"],
           onChanged: (val) => controller.idType.value = val!,
         ),
         _CustomTextField(
           controller: controller.idNumber,
           label: 'ID Number',
+          keyboardType: TextInputType.number,
           icon: Icons.numbers_outlined,
         ),
         const SizedBox(height: 10),

@@ -1,14 +1,13 @@
 import 'package:flutter/foundation.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide FormData, MultipartFile;
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import 'dart:io';
 import 'package:camera/camera.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:cashpilot/Core/Network/DioClient.dart';
 
 class RegistrationController extends GetxController {
   // Observable for current step
@@ -542,97 +541,101 @@ class RegistrationController extends GetxController {
     if (!validateCurrentStep()) return;
 
     try {
-      // Show loading
+      // Show loading dialog
       Get.dialog(
-        const Center(
-          child: CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF1E88E5)),
-          ),
-        ),
+        const Center(child: CircularProgressIndicator()),
         barrierDismissible: false,
       );
 
-      final url = Uri.parse("http://192.168.1.65:8000/api/register");
-      var request = http.MultipartRequest('POST', url);
+      final dio = DioClient().getInstance();
 
-      request.fields.addAll({
-        'firstName': firstName.text,
-        'lastName': lastName.text,
-        'age': age.text,
-        'gender': gender.value.toLowerCase(),
-        'place_of_birth': placeOfBirth.text,
-        'country': country.value,
-        'city': city.text,
-        'phone_number': phone.text,
-        'email': email.text,
-        'Nationality': nationality.value,
-        'id_type': idType.value,
-        'id_number': idNumber.text,
-        'father_name': fatherName.text,
-        'mother_name': motherFullName.text,
-        'income_source': sourceOfIncome.value,
-        'user_type': 'individual',
-        'password': password.text,
-        'password_confirmation': confirmPassword.text,
+      // PREPARE FORM DATA
+      FormData formData = FormData.fromMap({
+        "first_name": firstName.text,
+        "last_name": lastName.text,
+        "father_name": fatherName.text,
+        "mother_full_name": motherFullName.text,
+        "age": age.text,
+        "gender": gender.value,
+        "place_of_birth": placeOfBirth.text,
+        "country": country.value,
+        "city": city.text,
+        "phone": phone.text,
+        "email": email.text,
+
+        "nationality": nationality.value,
+        "id_type": idType.value,
+        "id_number": idNumber.text,
+
+        "user_type": userType.value,
+        "source_of_income": sourceOfIncome.value,
+        "marital_status": martialStatus.value,
+
+        "password": password.text,
+        "password_confirmation": confirmPassword.text,
+        "agree_terms": agreeTerms.value ? "1" : "0",
+
+        // FILES
+        "id_front": await MultipartFile.fromFile(
+          idFront.value!.path,
+          filename: "id_front.jpg",
+        ),
+
+        "id_back": await MultipartFile.fromFile(
+          idBack.value!.path,
+          filename: "id_back.jpg",
+        ),
+
+        "face_selfie": await MultipartFile.fromFile(
+          faceSelfie.value!.path,
+          filename: "face_selfie.jpg",
+        ),
       });
 
-      print("📡 Sending registration request to Laravel...");
-      print("➡️ URL: $url");
-      print("📦 Data: ${request.fields}");
+      // SEND REQUEST
+      final response = await dio.post(
+        "register",
+        data: formData,
+        options: Options(contentType: "multipart/form-data"),
+      );
 
-      // Attach images
-      if (faceSelfie.value != null) {
-        request.files.add(
-          await http.MultipartFile.fromPath(
-            'profile_photo',
-            faceSelfie.value!.path,
-          ),
-        );
-      }
-      if (idFront.value != null) {
-        request.files.add(
-          await http.MultipartFile.fromPath('id_front', idFront.value!.path),
-        );
-      }
-      if (idBack.value != null) {
-        request.files.add(
-          await http.MultipartFile.fromPath('id_back', idBack.value!.path),
-        );
-      }
+      Get.back(); // Close loading
 
-      var response = await request.send();
-      var responseBody = await response.stream.bytesToString();
-      var data = json.decode(responseBody);
+      // SUCCESS
+      Get.snackbar(
+        "Success",
+        "Registration complete! OTP sent to your email.",
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+      );
+      await Future.delayed(const Duration(milliseconds: 500));
 
-      Get.back(); // close loading
+      // 🚀 Navigate to OTP screen
+      Get.toNamed(
+        "/otp",
+        arguments: {"email": email.text, "phone": phone.text},
+      );
+    } catch (e) {
+      Get.back();
 
-      if (response.statusCode == 201) {
+      if (e is DioException) {
+        print("❌ Dio Error: ${e.response?.data}");
         Get.snackbar(
-          'Success',
-          data['message'] ??
-              'User registered successfully! Please verify your account via OTP.',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.green,
+          "Error",
+          e.response?.data["message"] ??
+              e.response?.data.toString() ??
+              "Unexpected error",
+          backgroundColor: Colors.red,
           colorText: Colors.white,
-          margin: const EdgeInsets.all(16),
-          borderRadius: 8,
-          duration: const Duration(seconds: 4),
         );
-
-        // Navigate to OTP verification page
-        // Get.toNamed('/verify-otp', arguments: email.text);
       } else {
         Get.snackbar(
-          'Error',
-          data['message'] ?? 'Registration failed!',
-          snackPosition: SnackPosition.BOTTOM,
+          "Error",
+          e.toString(),
           backgroundColor: Colors.red,
           colorText: Colors.white,
         );
       }
-    } catch (e) {
-      Get.back();
-      _showError('Failed to connect to the server: $e');
     }
   }
 
