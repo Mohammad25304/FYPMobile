@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:cashpilot/Controllers/RegistrationController.dart';
+import 'package:camera/camera.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -283,213 +284,210 @@ class Registration extends GetView<RegistrationController> {
       title: 'Identity Verification',
       subtitle: 'Upload your identification documents',
       children: [
-        SizedBox(
-          width: double.infinity,
-          child: _CustomDropdown(
-            value: controller.nationality.value.isEmpty
-                ? null
-                : controller.nationality.value,
-            label: "Nationality",
-            icon: Icons.flag_outlined,
-            items: const [
-              "Afghanistan",
-              "Albania",
-              "Algeria",
-              "Andorra",
-              "Angola",
-              "Antigua and Barbuda",
-              "Argentina",
-              "Armenia",
-              "Australia",
-              "Austria",
-              "Azerbaijan",
-              "Bahamas",
-              "Bahrain",
-              "Bangladesh",
-              "Barbados",
-              "Belarus",
-              "Belgium",
-              "Belize",
-              "Benin",
-              "Bhutan",
-              "Bolivia",
-              "Bosnia and Herzegovina",
-              "Botswana",
-              "Brazil",
-              "Brunei",
-              "Bulgaria",
-              "Burkina Faso",
-              "Burundi",
-              "Cabo Verde",
-              "Cambodia",
-              "Cameroon",
-              "Canada",
-              "Central African Republic",
-              "Chad",
-              "Chile",
-              "China",
-              "Colombia",
-              "Comoros",
-              "Congo",
-              "Costa Rica",
-              "Croatia",
-              "Cuba",
-              "Cyprus",
-              "Czech Republic",
-              "Denmark",
-              "Djibouti",
-              "Dominica",
-              "Dominican Republic",
-              "East Timor",
-              "Ecuador",
-              "Egypt",
-              "El Salvador",
-              "Equatorial Guinea",
-              "Eritrea",
-              "Estonia",
-              "Eswatini",
-              "Ethiopia",
-              "Fiji",
-              "Finland",
-              "France",
-              "Gabon",
-              "Gambia",
-              "Georgia",
-              "Germany",
-              "Ghana",
-              "Greece",
-              "Grenada",
-              "Guatemala",
-              "Guinea",
-              "Guinea-Bissau",
-              "Guyana",
-              "Haiti",
-              "Honduras",
-              "Hungary",
-              "Iceland",
-              "India",
-              "Indonesia",
-              "Iran",
-              "Iraq",
-              "Ireland",
-              "Israel",
-              "Italy",
-              "Jamaica",
-              "Japan",
-              "Jordan",
-              "Kazakhstan",
-              "Kenya",
-              "Kiribati",
-              "Kosovo",
-              "Kuwait",
-              "Kyrgyzstan",
-              "Laos",
-              "Latvia",
-              "Lebanon",
-              "Lesotho",
-              "Liberia",
-              "Libya",
-              "Liechtenstein",
-              "Lithuania",
-              "Luxembourg",
-              "Madagascar",
-              "Malawi",
-              "Malaysia",
-              "Maldives",
-              "Mali",
-              "Malta",
-              "Marshall Islands",
-              "Mauritania",
-              "Mauritius",
-              "Mexico",
-              "Micronesia",
-              "Moldova",
-              "Monaco",
-              "Mongolia",
-              "Montenegro",
-              "Morocco",
-              "Mozambique",
-              "Myanmar",
-              "Namibia",
-              "Nauru",
-              "Nepal",
-              "Netherlands",
-              "New Zealand",
-              "Nicaragua",
-              "Niger",
-              "Nigeria",
-              "North Korea",
-              "North Macedonia",
-              "Norway",
-              "Oman",
-              "Pakistan",
-              "Palau",
-              "Palestine",
-              "Panama",
-              "Papua New Guinea",
-              "Paraguay",
-              "Peru",
-              "Philippines",
-              "Poland",
-              "Portugal",
-              "Qatar",
-              "Romania",
-              "Russia",
-              "Rwanda",
-              "Saint Kitts and Nevis",
-              "Saint Lucia",
-              "Saint Vincent and the Grenadines",
-              "Samoa",
-              "San Marino",
-              "Sao Tome and Principe",
-              "Saudi Arabia",
-              "Senegal",
-              "Serbia",
-              "Seychelles",
-              "Sierra Leone",
-              "Singapore",
-              "Slovakia",
-              "Slovenia",
-              "Solomon Islands",
-              "Somalia",
-              "South Africa",
-              "South Korea",
-              "South Sudan",
-              "Spain",
-              "Sri Lanka",
-              "Sudan",
-              "Suriname",
-              "Sweden",
-              "Switzerland",
-              "Syria",
-              "Taiwan",
-              "Tajikistan",
-              "Tanzania",
-              "Thailand",
-              "Togo",
-              "Tonga",
-              "Trinidad and Tobago",
-              "Tunisia",
-              "Turkey",
-              "Turkmenistan",
-              "Tuvalu",
-              "Uganda",
-              "Ukraine",
-              "United Arab Emirates",
-              "United Kingdom",
-              "United States",
-              "Uruguay",
-              "Uzbekistan",
-              "Vanuatu",
-              "Vatican City",
-              "Venezuela",
-              "Vietnam",
-              "Yemen",
-              "Zambia",
-              "Zimbabwe",
-            ],
-            onChanged: (String? value) => controller.nationality.value = value!,
-          ),
+        _CustomDropdown(
+          value: controller.nationality.value.isEmpty
+              ? null
+              : controller.nationality.value,
+          label: "Nationality",
+          icon: Icons.flag_outlined,
+          items: const [
+            "Afghanistan",
+            "Albania",
+            "Algeria",
+            "Andorra",
+            "Angola",
+            "Antigua and Barbuda",
+            "Argentina",
+            "Armenia",
+            "Australia",
+            "Austria",
+            "Azerbaijan",
+            "Bahamas",
+            "Bahrain",
+            "Bangladesh",
+            "Barbados",
+            "Belarus",
+            "Belgium",
+            "Belize",
+            "Benin",
+            "Bhutan",
+            "Bolivia",
+            "Bosnia and Herzegovina",
+            "Botswana",
+            "Brazil",
+            "Brunei",
+            "Bulgaria",
+            "Burkina Faso",
+            "Burundi",
+            "Cabo Verde",
+            "Cambodia",
+            "Cameroon",
+            "Canada",
+            "Central African Republic",
+            "Chad",
+            "Chile",
+            "China",
+            "Colombia",
+            "Comoros",
+            "Congo",
+            "Costa Rica",
+            "Croatia",
+            "Cuba",
+            "Cyprus",
+            "Czech Republic",
+            "Denmark",
+            "Djibouti",
+            "Dominica",
+            "Dominican Republic",
+            "East Timor",
+            "Ecuador",
+            "Egypt",
+            "El Salvador",
+            "Equatorial Guinea",
+            "Eritrea",
+            "Estonia",
+            "Eswatini",
+            "Ethiopia",
+            "Fiji",
+            "Finland",
+            "France",
+            "Gabon",
+            "Gambia",
+            "Georgia",
+            "Germany",
+            "Ghana",
+            "Greece",
+            "Grenada",
+            "Guatemala",
+            "Guinea",
+            "Guinea-Bissau",
+            "Guyana",
+            "Haiti",
+            "Honduras",
+            "Hungary",
+            "Iceland",
+            "India",
+            "Indonesia",
+            "Iran",
+            "Iraq",
+            "Ireland",
+            "Israel",
+            "Italy",
+            "Jamaica",
+            "Japan",
+            "Jordan",
+            "Kazakhstan",
+            "Kenya",
+            "Kiribati",
+            "Kosovo",
+            "Kuwait",
+            "Kyrgyzstan",
+            "Laos",
+            "Latvia",
+            "Lebanon",
+            "Lesotho",
+            "Liberia",
+            "Libya",
+            "Liechtenstein",
+            "Lithuania",
+            "Luxembourg",
+            "Madagascar",
+            "Malawi",
+            "Malaysia",
+            "Maldives",
+            "Mali",
+            "Malta",
+            "Marshall Islands",
+            "Mauritania",
+            "Mauritius",
+            "Mexico",
+            "Micronesia",
+            "Moldova",
+            "Monaco",
+            "Mongolia",
+            "Montenegro",
+            "Morocco",
+            "Mozambique",
+            "Myanmar",
+            "Namibia",
+            "Nauru",
+            "Nepal",
+            "Netherlands",
+            "New Zealand",
+            "Nicaragua",
+            "Niger",
+            "Nigeria",
+            "North Korea",
+            "North Macedonia",
+            "Norway",
+            "Oman",
+            "Pakistan",
+            "Palau",
+            "Palestine",
+            "Panama",
+            "Papua New Guinea",
+            "Paraguay",
+            "Peru",
+            "Philippines",
+            "Poland",
+            "Portugal",
+            "Qatar",
+            "Romania",
+            "Russia",
+            "Rwanda",
+            "Saint Kitts and Nevis",
+            "Saint Lucia",
+            "Saint Vincent and the Grenadines",
+            "Samoa",
+            "San Marino",
+            "Sao Tome and Principe",
+            "Saudi Arabia",
+            "Senegal",
+            "Serbia",
+            "Seychelles",
+            "Sierra Leone",
+            "Singapore",
+            "Slovakia",
+            "Slovenia",
+            "Solomon Islands",
+            "Somalia",
+            "South Africa",
+            "South Korea",
+            "South Sudan",
+            "Spain",
+            "Sri Lanka",
+            "Sudan",
+            "Suriname",
+            "Sweden",
+            "Switzerland",
+            "Syria",
+            "Taiwan",
+            "Tajikistan",
+            "Tanzania",
+            "Thailand",
+            "Togo",
+            "Tonga",
+            "Trinidad and Tobago",
+            "Tunisia",
+            "Turkey",
+            "Turkmenistan",
+            "Tuvalu",
+            "Uganda",
+            "Ukraine",
+            "United Arab Emirates",
+            "United Kingdom",
+            "United States",
+            "Uruguay",
+            "Uzbekistan",
+            "Vanuatu",
+            "Vatican City",
+            "Venezuela",
+            "Vietnam",
+            "Yemen",
+            "Zambia",
+            "Zimbabwe",
+          ],
+          onChanged: (String? value) => controller.nationality.value = value!,
         ),
 
         _CustomDropdown(
@@ -540,7 +538,7 @@ class Registration extends GetView<RegistrationController> {
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  'Please ensure your face is clearly visible and well-lit',
+                  'AI-powered face detection will verify your identity in real-time',
                   style: TextStyle(color: Colors.blue[900], fontSize: 13),
                 ),
               ),
@@ -566,7 +564,7 @@ class Registration extends GetView<RegistrationController> {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'This helps us ensure account security and prevent identity theft',
+                  'Your face will be securely stored and used only for verification',
                   style: TextStyle(color: Colors.green[900], fontSize: 12),
                 ),
               ),
@@ -859,8 +857,17 @@ class _CustomDropdown extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 16),
       child: DropdownButtonFormField<String>(
         value: value,
+        isExpanded: true, // FIXED: Prevents overflow
         items: items
-            .map((item) => DropdownMenuItem(value: item, child: Text(item)))
+            .map(
+              (item) => DropdownMenuItem(
+                value: item,
+                child: Text(
+                  item,
+                  overflow: TextOverflow.ellipsis, // FIXED: Handle long text
+                ),
+              ),
+            )
             .toList(),
         onChanged: onChanged,
         decoration: InputDecoration(
@@ -991,6 +998,8 @@ class _LivePhotoCapture extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final controller = Get.find<RegistrationController>();
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -998,123 +1007,278 @@ class _LivePhotoCapture extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.grey[300]!),
       ),
-      child: Column(
-        children: [
-          if (image == null)
-            InkWell(
-              onTap: onCapture,
-              child: Container(
-                height: 250,
+      child: Obx(() {
+        // If photo already captured
+        if (controller.faceSelfie.value != null) {
+          return _buildCapturedPhoto(controller);
+        }
+
+        // If camera not initialized
+        if (!controller.isCameraInitialized.value) {
+          return _buildInitialState(controller);
+        }
+
+        // Show camera preview with face detection
+        return _buildCameraPreview(controller);
+      }),
+    );
+  }
+
+  Widget _buildInitialState(RegistrationController controller) {
+    return InkWell(
+      onTap: () => controller.initializeCamera(),
+      child: Container(
+        height: 350,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: const Color(0xFF1E88E5), width: 2),
+        ),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: const Color(0xFF1E88E5),
-                    width: 2,
-                    style: BorderStyle.solid,
-                  ),
+                  color: Colors.blue[50],
+                  shape: BoxShape.circle,
                 ),
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          color: Colors.blue[50],
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          Icons.camera_alt,
-                          size: 64,
-                          color: Colors.blue[700],
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Take Live Selfie',
-                        style: TextStyle(
-                          color: Colors.grey[700],
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Tap to open camera',
-                        style: TextStyle(color: Colors.grey[500], fontSize: 14),
-                      ),
-                    ],
-                  ),
+                child: Icon(
+                  Icons.camera_alt,
+                  size: 64,
+                  color: Colors.blue[700],
                 ),
               ),
-            )
-          else
-            Column(
+              const SizedBox(height: 16),
+              Text(
+                'Start Face Verification',
+                style: TextStyle(
+                  color: Colors.grey[700],
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Tap to open camera',
+                style: TextStyle(color: Colors.grey[500], fontSize: 14),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCameraPreview(RegistrationController controller) {
+    return Column(
+      children: [
+        Container(
+          height: 350,
+          width: double.infinity,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            color: Colors.black,
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: Stack(
+              fit: StackFit.expand,
               children: [
-                Stack(
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Image.file(
-                        image,
-                        height: 250,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
+                // Camera preview - FIXED: Use FittedBox to properly scale
+                FittedBox(
+                  fit: BoxFit.cover,
+                  child: SizedBox(
+                    width:
+                        controller.cameraController!.value.previewSize!.height,
+                    height:
+                        controller.cameraController!.value.previewSize!.width,
+                    child: CameraPreview(controller.cameraController!),
+                  ),
+                ),
+
+                // Face detection overlay guide
+                Center(
+                  child: Container(
+                    width: 200,
+                    height: 260,
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        color: controller.isFaceDetected.value
+                            ? Colors.green
+                            : Colors.white.withOpacity(0.7),
+                        width: 3,
                       ),
+                      borderRadius: BorderRadius.circular(130),
                     ),
-                    Positioned(
-                      top: 8,
-                      right: 8,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.green,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: const [
-                            Icon(
-                              Icons.check_circle,
-                              color: Colors.white,
-                              size: 16,
-                            ),
-                            SizedBox(width: 4),
-                            Text(
-                              'Verified',
-                              style: TextStyle(
+                  ),
+                ),
+
+                // Status indicator at top
+                Positioned(
+                  top: 16,
+                  left: 16,
+                  right: 16,
+                  child: Obx(
+                    () => Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 10,
+                      ),
+                      decoration: BoxDecoration(
+                        color: controller.isFaceDetected.value
+                            ? Colors.green.withOpacity(0.9)
+                            : Colors.orange.withOpacity(0.9),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            controller.isFaceDetected.value
+                                ? Icons.check_circle
+                                : Icons.face_rounded,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              controller.faceDetectionMessage.value,
+                              style: const TextStyle(
                                 color: Colors.white,
-                                fontSize: 12,
+                                fontSize: 13,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                     ),
-                  ],
+                  ),
                 ),
-                const SizedBox(height: 12),
-                OutlinedButton.icon(
-                  onPressed: onCapture,
-                  icon: const Icon(Icons.camera_alt),
-                  label: const Text('Retake Photo'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFF1E88E5),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 12,
+
+                // Instructions at bottom
+                Positioned(
+                  bottom: 16,
+                  left: 16,
+                  right: 16,
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.7),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Text(
+                      'Position your face within the oval\nLook straight at the camera',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Colors.white, fontSize: 12),
                     ),
                   ),
                 ),
               ],
             ),
-        ],
-      ),
+          ),
+        ),
+        const SizedBox(height: 16),
+
+        // Action buttons
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: () async {
+                  await controller.disposeCamera();
+                },
+                icon: const Icon(Icons.close),
+                label: const Text('Cancel'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.grey[700],
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              flex: 2,
+              child: Obx(
+                () => ElevatedButton.icon(
+                  onPressed: controller.isFaceDetected.value
+                      ? () => controller.captureFacePhoto()
+                      : null,
+                  icon: const Icon(Icons.camera),
+                  label: const Text('Capture'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF1E88E5),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    disabledBackgroundColor: Colors.grey[300],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCapturedPhoto(RegistrationController controller) {
+    return Column(
+      children: [
+        Stack(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.file(
+                controller.faceSelfie.value!,
+                height: 350,
+                width: double.infinity,
+                fit: BoxFit.cover,
+              ),
+            ),
+            Positioned(
+              top: 8,
+              right: 8,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.green,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: const [
+                    Icon(Icons.verified, color: Colors.white, size: 16),
+                    SizedBox(width: 4),
+                    Text(
+                      'Face Verified',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        OutlinedButton.icon(
+          onPressed: () => controller.retakeFacePhoto(),
+          icon: const Icon(Icons.refresh),
+          label: const Text('Retake Photo'),
+          style: OutlinedButton.styleFrom(
+            foregroundColor: const Color(0xFF1E88E5),
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          ),
+        ),
+      ],
     );
   }
 }
