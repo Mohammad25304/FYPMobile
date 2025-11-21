@@ -50,6 +50,8 @@ class LoginController extends GetxController {
       colorText: Colors.white,
       margin: const EdgeInsets.all(16),
     );
+
+    Get.toNamed('/home');
   }
 
   @override

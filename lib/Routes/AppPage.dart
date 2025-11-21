@@ -6,6 +6,8 @@ import 'package:get/get.dart';
 import 'package:cashpilot/Bindings/RegistrationBinding.dart';
 import 'package:cashpilot/Views/Registration.dart';
 import 'package:cashpilot/Views/Login.dart';
+import 'package:cashpilot/Views/Home.dart';
+import 'package:cashpilot/Bindings/HomeBinding.dart';
 
 class AppPage {
   static final List<GetPage> pages = [
@@ -22,5 +24,7 @@ class AppPage {
     ),
 
     GetPage(name: AppRoute.login, page: () => Login(), binding: LoginBinding()),
+
+    GetPage(name: AppRoute.home, page: () => Home(), binding: HomeBinding()),
   ];
 }

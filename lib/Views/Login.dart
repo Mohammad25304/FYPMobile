@@ -10,6 +10,7 @@ class Login extends GetView<LoginController> {
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: const Text(
           "Login",
           style: TextStyle(fontWeight: FontWeight.w600),
@@ -104,19 +105,19 @@ class Login extends GetView<LoginController> {
 
           // Welcome Text
           const Text(
-            'Welcome Back',
-            textAlign: TextAlign.center,
+            'Enter Passcode',
+            textAlign: TextAlign.left,
             style: TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.bold,
-              color: Colors.black87,
+              color: Colors.blue,
             ),
           ),
           const SizedBox(height: 8),
           Text(
-            'Enter your password to continue',
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+            'Enter your 4 digits passcode ',
+            textAlign: TextAlign.left,
+            style: TextStyle(fontSize: 16, color: Colors.grey[700]),
           ),
           const SizedBox(height: 32),
 
