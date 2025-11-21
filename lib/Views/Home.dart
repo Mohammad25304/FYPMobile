@@ -1,3 +1,5 @@
+import 'package:cashpilot/Views/Wallet.dart';
+import 'package:cashpilot/Controllers/WalletController.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:cashpilot/Controllers/HomeController.dart';
@@ -125,7 +127,24 @@ class Home extends GetView<HomeController> {
           selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600),
           unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500),
           onTap: (index) {
-            // TODO: Add navigation later
+            switch (index) {
+              case 0:
+                //0 is the home page
+                break;
+              case 1:
+                Get.put(WalletController());
+                Get.to(() => Wallet());
+                break;
+              case 2:
+                //New page
+                break;
+              case 3:
+                //New page
+                break;
+              case 4:
+                //New page
+                break;
+            }
           },
           items: const [
             BottomNavigationBarItem(

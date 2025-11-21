@@ -8,6 +8,8 @@ import 'package:cashpilot/Views/Registration.dart';
 import 'package:cashpilot/Views/Login.dart';
 import 'package:cashpilot/Views/Home.dart';
 import 'package:cashpilot/Bindings/HomeBinding.dart';
+import 'package:cashpilot/Bindings/WalletBinding.dart';
+import 'package:cashpilot/Views/Wallet.dart';
 
 class AppPage {
   static final List<GetPage> pages = [
@@ -22,9 +24,14 @@ class AppPage {
       page: () => OtpVerificationPage(),
       binding: OtpVerificationBinding(),
     ),
-
     GetPage(name: AppRoute.login, page: () => Login(), binding: LoginBinding()),
 
     GetPage(name: AppRoute.home, page: () => Home(), binding: HomeBinding()),
+
+    GetPage(
+      name: '/wallet',
+      page: () => const Wallet(),
+      binding: WalletBinding(),
+    ),
   ];
 }

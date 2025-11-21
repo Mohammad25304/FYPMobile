@@ -3,6 +3,12 @@ import 'package:cashpilot/Core/Network/DioClient.dart';
 import 'package:dio/dio.dart';
 
 class HomeController extends GetxController {
+  var currentIndex = 0.obs;
+
+  void changePage(int index) {
+    currentIndex.value = index;
+  }
+
   var userName = 'Mohammad'.obs;
   var walletBalance = 0.0.obs;
   var isLoading = false.obs;
