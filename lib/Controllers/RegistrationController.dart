@@ -486,7 +486,7 @@ class RegistrationController extends GetxController {
       colorText: Colors.white,
       margin: const EdgeInsets.all(16),
       borderRadius: 8,
-      duration: const Duration(seconds: 3),
+      duration: const Duration(seconds: 1),
     );
   }
 
@@ -499,7 +499,7 @@ class RegistrationController extends GetxController {
       colorText: Colors.white,
       margin: const EdgeInsets.all(16),
       borderRadius: 8,
-      duration: const Duration(seconds: 2),
+      duration: const Duration(seconds: 1),
     );
   }
 
@@ -627,6 +627,7 @@ class RegistrationController extends GetxController {
               "Unexpected error",
           backgroundColor: Colors.red,
           colorText: Colors.white,
+          duration: const Duration(seconds: 1),
         );
       } else {
         Get.snackbar(
@@ -634,6 +635,7 @@ class RegistrationController extends GetxController {
           e.toString(),
           backgroundColor: Colors.red,
           colorText: Colors.white,
+          duration: const Duration(seconds: 1),
         );
       }
     }

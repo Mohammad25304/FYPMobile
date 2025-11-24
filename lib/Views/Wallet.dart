@@ -180,27 +180,90 @@ class Wallet extends GetView<WalletController> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Icon(
-                      Icons.account_balance_wallet_rounded,
-                      color: Colors.white,
-                      size: 24,
-                    ),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(
+                          Icons.account_balance_wallet_rounded,
+                          color: Colors.white,
+                          size: 24,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      const Text(
+                        'Available Balance',
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w500,
+                          letterSpacing: 0.3,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 12),
-                  const Text(
-                    'Available Balance',
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 15,
-                      fontWeight: FontWeight.w500,
-                      letterSpacing: 0.3,
+                  // Currency Selector
+                  Obx(
+                    () => PopupMenuButton<String>(
+                      onSelected: (String value) {
+                        controller.changeCurrency(value);
+                      },
+                      offset: const Offset(0, 40),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Row(
+                          children: [
+                            Text(
+                              controller.selectedCurrency.value,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            const Icon(
+                              Icons.keyboard_arrow_down_rounded,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                          ],
+                        ),
+                      ),
+                      itemBuilder: (BuildContext context) =>
+                          <PopupMenuEntry<String>>[
+                            _buildCurrencyMenuItem(
+                              'USD',
+                              'US Dollar',
+                              controller.usdBalance.value,
+                            ),
+                            _buildCurrencyMenuItem(
+                              'EUR',
+                              'Euro',
+                              controller.eurBalance.value,
+                            ),
+                            _buildCurrencyMenuItem(
+                              'LBP',
+                              'Lebanese Pound',
+                              controller.lbpBalance.value,
+                            ),
+                          ],
                     ),
                   ),
                 ],
@@ -208,7 +271,7 @@ class Wallet extends GetView<WalletController> {
               const SizedBox(height: 20),
               Obx(
                 () => Text(
-                  "\$${controller.walletBalance.value.toStringAsFixed(2)}",
+                  "${controller.currencySymbol}${_formatBalance(controller.currentBalance)}",
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 42,
@@ -218,7 +281,18 @@ class Wallet extends GetView<WalletController> {
                   ),
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 4),
+              Obx(
+                () => Text(
+                  controller.currencyName,
+                  style: const TextStyle(
+                    color: Colors.white70,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
               Row(
                 children: [
                   Container(
@@ -267,38 +341,72 @@ class Wallet extends GetView<WalletController> {
     );
   }
 
-  Widget _buildCurrencySelector() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.2),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          value: controller.selectedCurrency.value,
-          icon: const Icon(
-            Icons.keyboard_arrow_down,
-            color: Colors.white,
-            size: 20,
-          ),
-          dropdownColor: const Color(0xFF1565C0),
-          borderRadius: BorderRadius.circular(12),
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-          ),
-          items: const [
-            DropdownMenuItem(value: 'USD', child: Text('USD')),
-            DropdownMenuItem(value: 'EUR', child: Text('EUR')),
-            DropdownMenuItem(value: 'LBP', child: Text('LBP')),
+  // Helper method to format balance based on currency
+  String _formatBalance(double balance) {
+    if (controller.selectedCurrency.value == 'LBP') {
+      return balance
+          .toStringAsFixed(0)
+          .replaceAllMapped(
+            RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+            (Match m) => '${m[1]},',
+          );
+    }
+    return balance.toStringAsFixed(2);
+  }
+
+  // Helper method to build currency menu items
+  PopupMenuItem<String> _buildCurrencyMenuItem(
+    String code,
+    String name,
+    double balance,
+  ) {
+    String symbol = code == 'USD' ? '\$' : (code == 'EUR' ? '€' : 'LL');
+    String formattedBalance = code == 'LBP'
+        ? balance
+              .toStringAsFixed(0)
+              .replaceAllMapped(
+                RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+                (Match m) => '${m[1]},',
+              )
+        : balance.toStringAsFixed(2);
+
+    return PopupMenuItem<String>(
+      value: code,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  code,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF1E293B),
+                  ),
+                ),
+                Text(
+                  name,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.grey[600],
+                  ),
+                ),
+              ],
+            ),
+            Text(
+              '$symbol$formattedBalance',
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF1E88E5),
+              ),
+            ),
           ],
-          onChanged: (value) {
-            if (value != null) {
-              controller.selectedCurrency.value = value;
-            }
-          },
         ),
       ),
     );
@@ -346,12 +454,14 @@ class Wallet extends GetView<WalletController> {
                   ),
                 ),
                 const SizedBox(height: 6),
-                const Text(
-                  '\$5,420',
-                  style: TextStyle(
-                    color: Color(0xFF1E293B),
-                    fontSize: 20,
-                    fontWeight: FontWeight.w800,
+                Obx(
+                  () => Text(
+                    '\$${controller.totalIncome.value.toStringAsFixed(2)}',
+                    style: const TextStyle(
+                      color: Color(0xFF1E293B),
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
                 ),
               ],
@@ -398,12 +508,14 @@ class Wallet extends GetView<WalletController> {
                   ),
                 ),
                 const SizedBox(height: 6),
-                const Text(
-                  '\$2,180',
-                  style: TextStyle(
-                    color: Color(0xFF1E293B),
-                    fontSize: 20,
-                    fontWeight: FontWeight.w800,
+                Obx(
+                  () => Text(
+                    '\$${controller.totalExpenses.value.toStringAsFixed(2)}',
+                    style: const TextStyle(
+                      color: Color(0xFF1E293B),
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
                 ),
               ],
@@ -436,6 +548,7 @@ class Wallet extends GetView<WalletController> {
                 colors: [Color(0xFF4CAF50), Color(0xFF45A049)],
               ),
               onTap: () {
+                Get.toNamed('/addMoney');
                 // TODO: Add money page
               },
             ),
@@ -447,7 +560,7 @@ class Wallet extends GetView<WalletController> {
                 colors: [Color(0xFF1E88E5), Color(0xFF1565C0)],
               ),
               onTap: () {
-                // TODO: Send money
+                Get.toNamed('/sendMoney');
               },
             ),
             const SizedBox(width: 12),
@@ -458,7 +571,7 @@ class Wallet extends GetView<WalletController> {
                 colors: [Color(0xFFFF9800), Color(0xFFF57C00)],
               ),
               onTap: () {
-                // TODO: Transfer money
+                Get.toNamed('/transferMoney');
               },
             ),
           ],

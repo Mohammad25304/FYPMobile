@@ -371,7 +371,6 @@ class Registration extends GetView<RegistrationController> {
             "Iran",
             "Iraq",
             "Ireland",
-            "Israel",
             "Italy",
             "Jamaica",
             "Japan",

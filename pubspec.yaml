@@ -44,6 +44,8 @@ dependencies:
   camera: ^0.10.5
   path_provider: ^2.1.1
   permission_handler: ^11.0.1
+  mobile_scanner: ^3.5.5
+  local_auth: ^2.2.0
 
 dev_dependencies:
   flutter_test:
