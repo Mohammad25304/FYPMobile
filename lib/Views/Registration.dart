@@ -487,6 +487,7 @@ class Registration extends GetView<RegistrationController> {
             "Zambia",
             "Zimbabwe",
           ],
+
           onChanged: (String? value) => controller.nationality.value = value!,
         ),
 
