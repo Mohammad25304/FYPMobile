@@ -13,6 +13,11 @@ class Home extends GetView<HomeController> {
       backgroundColor: const Color(0xFFF8FAFC),
       extendBodyBehindAppBar: false,
       appBar: AppBar(
+        leading: IconButton(
+          onPressed: controller.logout,
+          icon: const Icon(Icons.logout),
+        ),
+
         automaticallyImplyLeading: false,
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -26,6 +31,7 @@ class Home extends GetView<HomeController> {
             ),
           ),
         ),
+
         title: Obx(
           () => Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -473,7 +479,9 @@ class Home extends GetView<HomeController> {
               icon: Icons.send_rounded,
               label: 'Send',
               color: const Color(0xFF1E88E5),
-              onTap: () {},
+              onTap: () {
+                Get.toNamed('/sendMoney');
+              },
             ),
             const SizedBox(width: 12),
             _quickActionButton(
@@ -487,7 +495,9 @@ class Home extends GetView<HomeController> {
               icon: Icons.add_rounded,
               label: 'Add Money',
               color: const Color(0xFF4CAF50),
-              onTap: () {},
+              onTap: () {
+                Get.toNamed('/addMoney');
+              },
             ),
           ],
         ),

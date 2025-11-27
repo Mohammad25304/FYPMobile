@@ -1,3 +1,4 @@
+import 'package:cashpilot/Core/Storage/SessionManager.dart';
 import 'package:get/get.dart' hide Response;
 import 'package:cashpilot/Core/Network/DioClient.dart';
 import 'package:dio/dio.dart';
@@ -72,6 +73,25 @@ class HomeController extends GetxController {
       print('Error fetching dashboard: $e');
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  Future<void> logout() async {
+    try {
+      final token = await SessionManager.getToken();
+      final dio = DioClient().getInstance();
+
+      if (token != null) {
+        await dio.post(
+          'logout',
+          options: Options(headers: {'Authorization': 'Bearer $token'}),
+        );
+      }
+    } catch (_) {
+      // ignore network errors on logout
+    } finally {
+      await SessionManager.clearSession();
+      Get.offAllNamed('/login');
     }
   }
 }

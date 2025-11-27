@@ -9,6 +9,10 @@ class AuthService {
     return await _dio.post("/register", data: formData);
   }
 
+  Future<Response> login(FormData formData) async {
+    return await _dio.post("/login-pin", data: formData);
+  }
+
   // 📌 Verify OTP
   Future<Response> verifyOtp(String email, String otp) async {
     return await _dio.post("/verify-otp", data: {"email": email, "otp": otp});
