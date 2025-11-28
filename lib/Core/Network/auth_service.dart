@@ -10,7 +10,7 @@ class AuthService {
   }
 
   Future<Response> login(FormData formData) async {
-    return await _dio.post("/login-pin", data: formData);
+    return await _dio.post("/login", data: formData);
   }
 
   // 📌 Verify OTP

@@ -493,7 +493,7 @@ class Home extends GetView<HomeController> {
             const SizedBox(width: 12),
             _quickActionButton(
               icon: Icons.add_rounded,
-              label: 'Add Money',
+              label: 'Receive',
               color: const Color(0xFF4CAF50),
               onTap: () {
                 Get.toNamed('/addMoney');
