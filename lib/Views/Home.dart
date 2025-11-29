@@ -37,7 +37,7 @@ class Home extends GetView<HomeController> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                'Welcome Back',
+                'Welcome',
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w400,

@@ -1,3 +1,4 @@
+import 'package:cashpilot/Routes/AppRoute.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:cashpilot/Controllers/LoginController.dart';
@@ -202,15 +203,7 @@ class Login extends GetView<LoginController> {
             alignment: Alignment.centerRight,
             child: TextButton(
               onPressed: () {
-                // TODO: Navigate to forgot password page
-                Get.snackbar(
-                  'Info',
-                  'Forgot password feature coming soon',
-                  snackPosition: SnackPosition.BOTTOM,
-                  backgroundColor: Colors.blue,
-                  colorText: Colors.white,
-                  margin: const EdgeInsets.all(16),
-                );
+                Get.toNamed(AppRoute.forgetPassword);
               },
               child: const Text(
                 'Forgot Password?',

@@ -8,4 +8,7 @@ class AppRoute {
   static const String trasferMoney = '/transferMoney';
   static const String addMoney = '/addMoney';
   static const String qrScan = '/qrScan';
+  static const String forgetPassword = '/forgetPassword';
+  static const String resetPassword = '/resetPassword';
+  static const String forgotPasswordOtp = '/forgotPasswordOtp';
 }

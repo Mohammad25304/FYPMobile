@@ -6,15 +6,35 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class LoginController extends GetxController {
-  final TextEditingController email = TextEditingController();
-  final TextEditingController password = TextEditingController();
+  late TextEditingController email;
+  late TextEditingController password;
   final RxBool isLoading = false.obs;
   final RxBool obscurePassword = true.obs;
 
   final AuthService _authService = AuthService();
 
+  @override
+  void onInit() {
+    super.onInit();
+    // Initialize controllers
+    email = TextEditingController();
+    password = TextEditingController();
+    debugPrint('✅ LoginController initialized');
+
+    // Clear fields when arriving at login screen
+    clearFields();
+  }
+
   void togglePasswordVisibility() {
     obscurePassword.value = !obscurePassword.value;
+  }
+
+  // ✅ NEW METHOD: Clear all fields
+  void clearFields() {
+    email.clear();
+    password.clear();
+    obscurePassword.value = true;
+    debugPrint('✅ Login fields cleared');
   }
 
   Future<void> login() async {
@@ -80,7 +100,11 @@ class LoginController extends GetxController {
 
   @override
   void onClose() {
-    password.dispose();
+    debugPrint('🧹 LoginController closed');
+    email.clear();
+    password.clear();
+    obscurePassword.value = true;
+    // Don't dispose - just clear the values
     super.onClose();
   }
 }

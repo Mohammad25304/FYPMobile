@@ -1,11 +1,17 @@
 import 'package:cashpilot/Bindings/AddMoneyBinding.dart';
+import 'package:cashpilot/Bindings/ForgetPasswordEmailBinding.dart';
+import 'package:cashpilot/Bindings/ForgetPasswordOTPBinding.dart';
 import 'package:cashpilot/Bindings/LoginBinding.dart';
 import 'package:cashpilot/Bindings/OtpVerificationBinding.dart';
 import 'package:cashpilot/Bindings/SendMoneyBinding.dart';
+import 'package:cashpilot/Controllers/ForgetPasswordController.dart';
 import 'package:cashpilot/Routes/AppRoute.dart';
 import 'package:cashpilot/Views/AddMoney.dart';
+import 'package:cashpilot/Views/ForgetPassword.dart';
+import 'package:cashpilot/Views/ForgetPasswordOtp.dart';
 import 'package:cashpilot/Views/OtpVerificationPage.dart';
 import 'package:cashpilot/Views/QrScan.dart';
+import 'package:cashpilot/Views/ResetPassword.dart';
 import 'package:cashpilot/Views/SendMoney.dart';
 import 'package:cashpilot/Views/TransferMoney.dart';
 import 'package:get/get.dart';
@@ -60,5 +66,21 @@ class AppPage {
     ),
 
     GetPage(name: '/qrScan', page: () => QrScan(), binding: AddMoneyBinding()),
+
+    GetPage(
+      name: '/forgetPassword',
+      page: () => const ForgetPassword(),
+      binding: ForgetPasswordEmailBinding(),
+    ),
+    GetPage(
+      name: '/forgetPasswordOtp',
+      page: () => const ForgetPasswordOTP(),
+      binding: ForgetPasswordOTPBinding(),
+    ),
+    GetPage(
+      name: '/resetPassword',
+      page: () => const ResetPassword(),
+      binding: ForgetPasswordOTPBinding(),
+    ),
   ];
 }
