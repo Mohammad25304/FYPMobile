@@ -1,3 +1,4 @@
+import 'package:cashpilot/Routes/AppRoute.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:cashpilot/Controllers/LoginController.dart';
@@ -121,6 +122,38 @@ class Login extends GetView<LoginController> {
           ),
           const SizedBox(height: 32),
 
+          // Email Field
+          TextField(
+            controller: controller.email,
+            keyboardType: TextInputType.emailAddress,
+            decoration: InputDecoration(
+              labelText: 'Email',
+              hintText: 'Enter your email',
+              prefixIcon: const Icon(
+                Icons.email_outlined,
+                color: Color(0xFF1E88E5),
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: Colors.grey[300]!),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: Colors.grey[300]!),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(
+                  color: Color(0xFF1E88E5),
+                  width: 2,
+                ),
+              ),
+              filled: true,
+              fillColor: Colors.grey[50],
+            ),
+          ),
+          const SizedBox(height: 16),
+
           // Password Field
           Obx(
             () => TextField(
@@ -170,15 +203,7 @@ class Login extends GetView<LoginController> {
             alignment: Alignment.centerRight,
             child: TextButton(
               onPressed: () {
-                // TODO: Navigate to forgot password page
-                Get.snackbar(
-                  'Info',
-                  'Forgot password feature coming soon',
-                  snackPosition: SnackPosition.BOTTOM,
-                  backgroundColor: Colors.blue,
-                  colorText: Colors.white,
-                  margin: const EdgeInsets.all(16),
-                );
+                Get.toNamed(AppRoute.forgetPassword);
               },
               child: const Text(
                 'Forgot Password?',

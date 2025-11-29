@@ -543,7 +543,7 @@ class Wallet extends GetView<WalletController> {
           children: [
             _walletButton(
               icon: Icons.add_rounded,
-              label: "Add Money",
+              label: "Recive",
               gradient: const LinearGradient(
                 colors: [Color(0xFF4CAF50), Color(0xFF45A049)],
               ),

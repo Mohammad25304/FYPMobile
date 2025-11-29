@@ -37,7 +37,7 @@ class Home extends GetView<HomeController> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                'Welcome Back',
+                'Welcome',
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w400,
@@ -493,7 +493,7 @@ class Home extends GetView<HomeController> {
             const SizedBox(width: 12),
             _quickActionButton(
               icon: Icons.add_rounded,
-              label: 'Add Money',
+              label: 'Receive',
               color: const Color(0xFF4CAF50),
               onTap: () {
                 Get.toNamed('/addMoney');

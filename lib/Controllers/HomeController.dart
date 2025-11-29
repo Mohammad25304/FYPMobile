@@ -1,4 +1,5 @@
 import 'package:cashpilot/Core/Storage/SessionManager.dart';
+import 'package:cashpilot/Controllers/LoginController.dart';
 import 'package:get/get.dart' hide Response;
 import 'package:cashpilot/Core/Network/DioClient.dart';
 import 'package:dio/dio.dart';
@@ -18,6 +19,7 @@ class HomeController extends GetxController {
   var euroBalance = 0.0.obs;
   var lbpBalance = 0.0.obs;
   var selectedCurrency = 'USD'.obs;
+
   // Example lists
   var quickActions = [
     {'label': 'Send Money', 'icon': 'send'},
@@ -91,6 +93,12 @@ class HomeController extends GetxController {
       // ignore network errors on logout
     } finally {
       await SessionManager.clearSession();
+
+      // ✅ CLEAR LOGIN FIELDS BEFORE NAVIGATING BACK
+      if (Get.isRegistered<LoginController>()) {
+        Get.find<LoginController>().clearFields();
+      }
+
       Get.offAllNamed('/login');
     }
   }
