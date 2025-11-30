@@ -25,7 +25,7 @@ class Wallet extends GetView<WalletController> {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
-          ),
+          ), 
         ),
         title: const Text(
           'My Wallet',
