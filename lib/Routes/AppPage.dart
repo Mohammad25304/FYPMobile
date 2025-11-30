@@ -4,7 +4,6 @@ import 'package:cashpilot/Bindings/ForgetPasswordOTPBinding.dart';
 import 'package:cashpilot/Bindings/LoginBinding.dart';
 import 'package:cashpilot/Bindings/OtpVerificationBinding.dart';
 import 'package:cashpilot/Bindings/SendMoneyBinding.dart';
-import 'package:cashpilot/Controllers/ForgetPasswordController.dart';
 import 'package:cashpilot/Routes/AppRoute.dart';
 import 'package:cashpilot/Views/AddMoney.dart';
 import 'package:cashpilot/Views/ForgetPassword.dart';
