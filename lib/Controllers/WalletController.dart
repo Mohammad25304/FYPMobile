@@ -74,31 +74,22 @@ class WalletController extends GetxController {
     try {
       isLoading.value = true;
 
-      final Response response = await _dio.get(
-        'wallet', // full URL = http://192.168.1.67/api/wallet
-        // If you need token manually:
-        // options: Options(headers: {'Authorization': 'Bearer YOUR_TOKEN'}),
-      );
-
+      final Response response = await _dio.get('wallet');
       final data = response.data;
 
-      // 1) Balances
       final balances = data['currency_balances'] ?? {};
       usdBalance.value = double.tryParse('${balances['USD'] ?? 0}') ?? 0.0;
       eurBalance.value = double.tryParse('${balances['EUR'] ?? 0}') ?? 0.0;
       lbpBalance.value = double.tryParse('${balances['LBP'] ?? 0}') ?? 0.0;
 
-      // 2) Default currency (optional)
       if (data['default_currency'] != null) {
         selectedCurrency.value = data['default_currency'];
       }
 
-      // 3) Stats
       final stats = data['stats'] ?? {};
       totalIncome.value = double.tryParse('${stats['income'] ?? 0}') ?? 0.0;
       totalExpenses.value = double.tryParse('${stats['expenses'] ?? 0}') ?? 0.0;
 
-      // 4) Transactions
       final txList = data['transactions'] as List<dynamic>? ?? [];
       walletTransactions.assignAll(
         txList.map(
@@ -112,13 +103,17 @@ class WalletController extends GetxController {
         ),
       );
     } catch (e) {
-      // You can improve this with better error handling
+      print('Full error details: $e');
+      print('Error type: ${e.runtimeType}');
+      if (e is DioException) {
+        print('Status code: ${e.response?.statusCode}');
+        print('Response data: ${e.response?.data}');
+      }
       Get.snackbar(
         'Wallet Error',
         'Failed to load wallet data',
         snackPosition: SnackPosition.BOTTOM,
       );
-      print('Wallet API error: $e');
     } finally {
       isLoading.value = false;
     }

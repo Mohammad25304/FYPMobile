@@ -4,7 +4,7 @@ class DioClient {
   Dio getInstance({bool useJson = true}) {
     final dio = Dio(
       BaseOptions(
-        baseUrl: "http://192.168.1.50:8000/api/",
+        baseUrl: "http://192.168.1.68:8000/api/",
         connectTimeout: const Duration(seconds: 30), // Increased timeout
         receiveTimeout: const Duration(seconds: 30),
         headers: useJson
