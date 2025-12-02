@@ -1,5 +1,7 @@
+import 'package:cashpilot/Controllers/WalletController.dart';
 import 'package:cashpilot/Core/Network/DioClient.dart';
 import 'package:cashpilot/Core/Network/auth_service.dart';
+import 'package:cashpilot/Core/Storage/SessionManager.dart'; // Add this import
 import 'package:dio/dio.dart' as dio;
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -79,10 +81,29 @@ class LoginController extends GetxController {
         colorText: Colors.white,
       );
 
-      // Save token to storage later if needed
-      // final token = response.data["token"];
+      // ✅ SAVE TOKEN AND EMAIL TO STORAGE
+      final token = response.data["token"] ?? response.data["access_token"];
+      final userEmail = email.text;
 
-      Get.toNamed('/home');
+      if (token != null) {
+        await SessionManager.saveSession(token: token, email: userEmail);
+        debugPrint('✅ Token saved: $token');
+      } else {
+        debugPrint('❌ No token found in response');
+        Get.snackbar(
+          "Error",
+          "Token not received from server",
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+        return;
+      }
+
+      // Fetch wallet data after successful login
+      final walletController = Get.put(WalletController());
+      await walletController.fetchWalletData();
+
+      Get.offAllNamed('/home');
     } on DioException catch (e) {
       isLoading.value = false;
 
@@ -101,10 +122,9 @@ class LoginController extends GetxController {
   @override
   void onClose() {
     debugPrint('🧹 LoginController closed');
-    email.clear();
-    password.clear();
+    email.dispose();
+    password.dispose();
     obscurePassword.value = true;
-    // Don't dispose - just clear the values
     super.onClose();
   }
 }

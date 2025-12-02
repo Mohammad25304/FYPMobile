@@ -1,3 +1,5 @@
+import 'package:cashpilot/Controllers/PaymentController.dart';
+import 'package:cashpilot/Views/Payment.dart';
 import 'package:cashpilot/Views/Wallet.dart';
 import 'package:cashpilot/Controllers/WalletController.dart';
 import 'package:flutter/material.dart';
@@ -17,7 +19,6 @@ class Home extends GetView<HomeController> {
           onPressed: controller.logout,
           icon: const Icon(Icons.logout),
         ),
-
         automaticallyImplyLeading: false,
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -31,7 +32,6 @@ class Home extends GetView<HomeController> {
             ),
           ),
         ),
-
         title: Obx(
           () => Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -142,7 +142,8 @@ class Home extends GetView<HomeController> {
                 Get.to(() => Wallet());
                 break;
               case 2:
-                //New page
+                Get.put(PaymentController());
+                Get.to(() => Payment());
                 break;
               case 3:
                 //New page
@@ -307,35 +308,40 @@ class Home extends GetView<HomeController> {
                         color: Colors.white.withOpacity(0.15),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Row(
+                      child: Row(
                         children: [
-                          Icon(
+                          const Icon(
                             Icons.arrow_upward_rounded,
                             color: Colors.white,
                             size: 18,
                           ),
-                          SizedBox(width: 8),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Income',
-                                style: TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w500,
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Income',
+                                  style: TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                 ),
-                              ),
-                              SizedBox(height: 2),
-                              Text(
-                                '\$0',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w700,
+                                const SizedBox(height: 2),
+                                Obx(
+                                  () => Text(
+                                    _formatAmount(controller.totalIncome.value),
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ],
                       ),
@@ -349,35 +355,42 @@ class Home extends GetView<HomeController> {
                         color: Colors.white.withOpacity(0.15),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Row(
+                      child: Row(
                         children: [
-                          Icon(
+                          const Icon(
                             Icons.arrow_downward_rounded,
                             color: Colors.white,
                             size: 18,
                           ),
-                          SizedBox(width: 8),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Expenses',
-                                style: TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w500,
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Expenses',
+                                  style: TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                 ),
-                              ),
-                              SizedBox(height: 2),
-                              Text(
-                                '\$0',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w700,
+                                const SizedBox(height: 2),
+                                Obx(
+                                  () => Text(
+                                    _formatAmount(
+                                      controller.totalExpenses.value,
+                                    ),
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ],
                       ),
@@ -430,33 +443,45 @@ class Home extends GetView<HomeController> {
   }
 
   String _getFormattedBalance() {
-    final balance = controller.walletBalance.value;
     final currency = controller.selectedCurrency.value;
-
-    // Exchange rates (you should update these with real-time rates)
-    double convertedBalance;
+    double balance;
     String symbol;
 
+    // Get balance directly from controller based on selected currency
     switch (currency) {
       case 'EUR':
-        convertedBalance = balance * 0.92; // 1 USD = 0.92 EUR (example rate)
+        balance = controller.euroBalance.value;
         symbol = '€';
         break;
       case 'LBP':
-        convertedBalance = balance * 89500; // 1 USD = 89,500 LBP (example rate)
-        symbol = 'LBP';
+        balance = controller.lbpBalance.value;
+        symbol = 'LL';
         break;
       case 'USD':
       default:
-        convertedBalance = balance;
+        balance = controller.usdBalance.value;
         symbol = '\$';
     }
 
     // Format based on currency
     if (currency == 'LBP') {
-      return '$symbol${convertedBalance.toStringAsFixed(0)}';
+      return '$symbol${balance.toStringAsFixed(0)}';
     } else {
-      return '$symbol${convertedBalance.toStringAsFixed(2)}';
+      return '$symbol${balance.toStringAsFixed(2)}';
+    }
+  }
+
+  String _formatAmount(double amount) {
+    final currency = controller.selectedCurrency.value;
+
+    switch (currency) {
+      case 'EUR':
+        return '€${amount.toStringAsFixed(2)}';
+      case 'LBP':
+        return 'LL${amount.toStringAsFixed(0)}';
+      case 'USD':
+      default:
+        return '\$${amount.toStringAsFixed(2)}';
     }
   }
 
