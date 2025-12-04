@@ -15,10 +15,16 @@ class HomeController extends GetxController {
   var walletBalance = 0.0.obs;
   var isLoading = false.obs;
   var isBalanceVisible = true.obs;
+
+  // Currency balances
   var usdBalance = 0.0.obs;
   var euroBalance = 0.0.obs;
   var lbpBalance = 0.0.obs;
   var selectedCurrency = 'USD'.obs;
+
+  // Income and Expenses
+  var totalIncome = 0.0.obs;
+  var totalExpenses = 0.0.obs;
 
   // Example lists
   var quickActions = [
@@ -46,17 +52,41 @@ class HomeController extends GetxController {
     fetchDashboardData();
   }
 
+  // Helper to get current balance based on selected currency
+  double get currentBalance {
+    switch (selectedCurrency.value) {
+      case 'EUR':
+        return euroBalance.value;
+      case 'LBP':
+        return lbpBalance.value;
+      case 'USD':
+      default:
+        return usdBalance.value;
+    }
+  }
+
   Future<void> fetchDashboardData() async {
     try {
       isLoading.value = true;
 
-      // TODO: replace with your real endpoint
+      // Fetch dashboard data
       Response response = await _dio.get('dashboard');
 
       // Example expected JSON:
       // {
       //   "user": {"name": "Mohammad"},
-      //   "wallet": {"balance": 250.75},
+      //   "wallet": {
+      //     "currency_balances": {
+      //       "USD": 250.75,
+      //       "EUR": 230.50,
+      //       "LBP": 22437500
+      //     },
+      //     "default_currency": "USD",
+      //     "stats": {
+      //       "income": 1500.00,
+      //       "expenses": 850.25
+      //     }
+      //   },
       //   "recent_transactions": [
       //      {"title": "Touch Recharge", "amount": -20.0, "date": "2025-11-21", "type": "debit"},
       //      ...
@@ -64,15 +94,46 @@ class HomeController extends GetxController {
       // }
 
       final data = response.data;
+
+      // User info
       userName.value = data['user']['name'] ?? 'User';
-      walletBalance.value =
-          double.tryParse(data['wallet']['balance'].toString()) ?? 0.0;
+
+      // Wallet balances
+      final wallet = data['wallet'] ?? {};
+      final balances = wallet['currency_balances'] ?? {};
+
+      usdBalance.value = double.tryParse('${balances['USD'] ?? 0}') ?? 0.0;
+      euroBalance.value = double.tryParse('${balances['EUR'] ?? 0}') ?? 0.0;
+      lbpBalance.value = double.tryParse('${balances['LBP'] ?? 0}') ?? 0.0;
+
+      // Set default currency
+      if (wallet['default_currency'] != null) {
+        selectedCurrency.value = wallet['default_currency'];
+      }
+
+      // Stats
+      final stats = wallet['stats'] ?? {};
+      totalIncome.value = double.tryParse('${stats['income'] ?? 0}') ?? 0.0;
+      totalExpenses.value = double.tryParse('${stats['expenses'] ?? 0}') ?? 0.0;
+
+      // Keep backward compatibility with old API
+      walletBalance.value = currentBalance;
+
+      // Recent transactions
       recentTransactions.assignAll(
         List<Map<String, dynamic>>.from(data['recent_transactions'] ?? []),
       );
     } catch (e) {
-      // For now just print, later you can show a snackbar
       print('Error fetching dashboard: $e');
+      if (e is DioException) {
+        print('Status code: ${e.response?.statusCode}');
+        print('Response data: ${e.response?.data}');
+      }
+      Get.snackbar(
+        'Error',
+        'Failed to load dashboard data',
+        snackPosition: SnackPosition.BOTTOM,
+      );
     } finally {
       isLoading.value = false;
     }

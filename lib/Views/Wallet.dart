@@ -1,5 +1,7 @@
 import 'package:cashpilot/Controllers/HomeController.dart';
+import 'package:cashpilot/Controllers/PaymentController.dart';
 import 'package:cashpilot/Views/Home.dart';
+import 'package:cashpilot/Views/Payment.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:cashpilot/Controllers/WalletController.dart';
@@ -25,7 +27,7 @@ class Wallet extends GetView<WalletController> {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
-          ), 
+          ),
         ),
         title: const Text(
           'My Wallet',
@@ -81,14 +83,15 @@ class Wallet extends GetView<WalletController> {
           switch (index) {
             case 0:
               Get.put(HomeController());
-              Get.to(Home());
+              Get.to(() => Home());
               break;
             case 1:
               // Get.put(WalletController());
               // Get.to(() => Wallet());
               break;
             case 2:
-              //New page
+              Get.put(PaymentController());
+              Get.to(() => Payment());
               break;
             case 3:
               //New page
