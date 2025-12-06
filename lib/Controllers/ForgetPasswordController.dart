@@ -10,7 +10,7 @@ class ForgetPasswordController extends GetxController {
   final Dio dio = Dio();
 
   // ✅ Update this to your actual backend IP
-  final String baseUrl = 'http://192.168.1.70:8000/api';
+  final String baseUrl = 'http://192.168.1.50:8000/api';
 
   // Text Controllers
   late TextEditingController emailController;

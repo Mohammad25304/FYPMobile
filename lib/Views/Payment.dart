@@ -142,64 +142,6 @@ class Payment extends GetView<PaymentController> {
             ),
           ],
         ),
-<<<<<<< HEAD
-        child: BottomNavigationBar(
-          currentIndex: 2,
-          selectedItemColor: const Color(0xFF1E88E5),
-          unselectedItemColor: Colors.grey[400],
-          type: BottomNavigationBarType.fixed,
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600),
-          unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500),
-          onTap: (index) {
-            switch (index) {
-              case 0:
-                Get.back();
-                break;
-              case 1:
-                Get.put(WalletController());
-                Get.off(() => Wallet());
-                break;
-              case 2:
-                // Already on Payments page
-                break;
-              case 3:
-                // New page
-                break;
-              case 4:
-                // New page
-                break;
-            }
-          },
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home_outlined),
-              activeIcon: Icon(Icons.home_rounded),
-              label: "Home",
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.account_balance_wallet_outlined),
-              activeIcon: Icon(Icons.account_balance_wallet_rounded),
-              label: "Wallet",
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.payment_outlined),
-              activeIcon: Icon(Icons.payment_rounded),
-              label: "Payments",
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.apps_outlined),
-              activeIcon: Icon(Icons.apps_rounded),
-              label: "Services",
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.person_outline),
-              activeIcon: Icon(Icons.person_rounded),
-              label: "Details",
-            ),
-          ],
-=======
       );
     });
   }
@@ -215,7 +157,6 @@ class Payment extends GetView<PaymentController> {
             fontWeight: FontWeight.w500,
             color: isSelected ? Colors.white : Colors.grey[700],
           ),
->>>>>>> e9dc32be84c15b18d6604bb2635fba7a23aa200b
         ),
         selected: isSelected,
         selectedColor: const Color(0xFF1E88E5),
