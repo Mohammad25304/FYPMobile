@@ -125,7 +125,7 @@ class Wallet extends GetView<WalletController> {
           BottomNavigationBarItem(
             icon: Icon(Icons.person_outline),
             activeIcon: Icon(Icons.person_rounded),
-            label: "Profile",
+            label: "Details",
           ),
         ],
       ),
@@ -296,47 +296,6 @@ class Wallet extends GetView<WalletController> {
                 ),
               ),
               const SizedBox(height: 12),
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 5,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF4CAF50).withOpacity(0.9),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: const Row(
-                      children: [
-                        Icon(
-                          Icons.trending_up_rounded,
-                          color: Colors.white,
-                          size: 14,
-                        ),
-                        SizedBox(width: 4),
-                        Text(
-                          '+12.5%',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  const Text(
-                    'vs last month',
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
             ],
           ),
         ],

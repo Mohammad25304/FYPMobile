@@ -1,3 +1,5 @@
+import 'package:cashpilot/Controllers/HomeController.dart';
+import 'package:cashpilot/Controllers/SendMoneyController.dart';
 import 'package:cashpilot/Controllers/WalletController.dart';
 import 'package:cashpilot/Core/Network/DioClient.dart';
 import 'package:cashpilot/Core/Network/auth_service.dart';
@@ -98,7 +100,9 @@ class LoginController extends GetxController {
         );
         return;
       }
-
+      // Fetch home dashboard data after successful login
+      final homeController = Get.put(HomeController());
+      await homeController.fetchDashboardData();
       // Fetch wallet data after successful login
       final walletController = Get.put(WalletController());
       await walletController.fetchWalletData();

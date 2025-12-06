@@ -10,8 +10,11 @@ class AddMoney extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: true,
+      backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: const Text("Add Money"),
+        title: const Text("Receive Money"),
+
         backgroundColor: const Color(0xFF1E88E5),
         elevation: 0,
       ),

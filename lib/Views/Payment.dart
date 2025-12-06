@@ -128,7 +128,7 @@ class Payment extends GetView<PaymentController> {
             BottomNavigationBarItem(
               icon: Icon(Icons.person_outline),
               activeIcon: Icon(Icons.person_rounded),
-              label: "Profile",
+              label: "Details",
             ),
           ],
         ),
