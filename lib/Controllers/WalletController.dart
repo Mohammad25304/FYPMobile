@@ -130,9 +130,6 @@ class WalletController extends GetxController {
           };
         }).toList(),
       );
-
-      // Recalculate income/expenses based on loaded history.
-      recalculateStats();
     } catch (e) {
       print('⚠ fetchWalletData error: $e');
       if (e is DioException) {
@@ -155,12 +152,22 @@ class WalletController extends GetxController {
   // ---------------------------------------------------------------------------
 
   void applyUpdatedBalances(Map<String, dynamic> balanceMap) {
-    // Backend response expected: { USD: value, EUR: value, LBP: value }
-    usdBalance.value = double.tryParse('${balanceMap['USD'] ?? 0}') ?? 0.0;
+    // Update balances locally first for immediate UI feedback
+    if (balanceMap.containsKey('USD')) {
+      usdBalance.value =
+          double.tryParse('${balanceMap['USD']}') ?? usdBalance.value;
+    }
+    if (balanceMap.containsKey('EUR')) {
+      eurBalance.value =
+          double.tryParse('${balanceMap['EUR']}') ?? eurBalance.value;
+    }
+    if (balanceMap.containsKey('LBP')) {
+      lbpBalance.value =
+          double.tryParse('${balanceMap['LBP']}') ?? lbpBalance.value;
+    }
 
-    eurBalance.value = double.tryParse('${balanceMap['EUR'] ?? 0}') ?? 0.0;
-
-    lbpBalance.value = double.tryParse('${balanceMap['LBP'] ?? 0}') ?? 0.0;
+    // Refresh everything from backend to stay in sync
+    fetchWalletData();
   }
 
   // ---------------------------------------------------------------------------
@@ -181,10 +188,13 @@ class WalletController extends GetxController {
     double expenses = 0.0;
 
     for (var tx in walletTransactions) {
-      if (tx['type'] == 'credit') {
-        income += tx['amount'];
-      } else if (tx['type'] == 'debit') {
-        expenses += tx['amount'];
+      // Only count transactions in the selected currency
+      if (tx['currency'] == selectedCurrency.value) {
+        if (tx['type'] == 'credit') {
+          income += tx['amount'];
+        } else if (tx['type'] == 'debit') {
+          expenses += tx['amount'];
+        }
       }
     }
 

@@ -119,15 +119,25 @@ class SendMoneyController extends GetxController {
       if (response.data["sender_balance"] != null) {
         final b = response.data["sender_balance"];
 
-        walletController.usdBalance.value =
-            double.tryParse(b["balance_usd"].toString()) ?? 0.0;
-
-        walletController.eurBalance.value =
-            double.tryParse(b["balance_eur"].toString()) ?? 0.0;
-
-        walletController.lbpBalance.value =
-            double.tryParse(b["balance_lbp"].toString()) ?? 0.0;
+        if (b["balance_usd"] != null) {
+          walletController.usdBalance.value =
+              double.tryParse(b["balance_usd"].toString()) ??
+              walletController.usdBalance.value;
+        }
+        if (b["balance_eur"] != null) {
+          walletController.eurBalance.value =
+              double.tryParse(b["balance_eur"].toString()) ??
+              walletController.eurBalance.value;
+        }
+        if (b["balance_lbp"] != null) {
+          walletController.lbpBalance.value =
+              double.tryParse(b["balance_lbp"].toString()) ??
+              walletController.lbpBalance.value;
+        }
       }
+
+      // Refresh wallet data to ensure everything is in sync
+      await walletController.fetchWalletData();
 
       // Add to local history
       walletController.walletTransactions.insert(0, {
