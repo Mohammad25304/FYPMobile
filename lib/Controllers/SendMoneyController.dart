@@ -1,3 +1,4 @@
+import 'package:cashpilot/Controllers/HomeController.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:dio/dio.dart';
@@ -11,6 +12,7 @@ class SendMoneyController extends GetxController {
   final recipientNameController = TextEditingController();
   final recipientPhoneController = TextEditingController();
   final noteController = TextEditingController();
+  final homeController = Get.find<HomeController>();
 
   // Observables
   var selectedCurrency = 'USD'.obs;
@@ -57,8 +59,9 @@ class SendMoneyController extends GetxController {
   }
 
   bool get canSend {
+    final total = amount.value + calculateFee();
     return amount.value > 0 &&
-        amount.value <= availableBalance &&
+        total <= availableBalance &&
         recipientEmailController.text.isNotEmpty &&
         !isSending.value;
   }
@@ -110,44 +113,35 @@ class SendMoneyController extends GetxController {
 
       debugPrint("🔥 SEND MONEY RESPONSE: ${response.data}");
 
-      // Save transaction ID
+      // Save transaction ID (for share)
       if (response.data["transaction_id"] != null) {
         lastTransactionId.value = response.data["transaction_id"].toString();
       }
 
-      // UPDATE WALLET BALANCES (FIXED)
+      // UPDATE WALLET BALANCES - aligned with backend keys
       if (response.data["sender_balance"] != null) {
         final b = response.data["sender_balance"];
 
-        if (b["balance_usd"] != null) {
+        if (b["usd_balance"] != null) {
           walletController.usdBalance.value =
-              double.tryParse(b["balance_usd"].toString()) ??
+              double.tryParse(b["usd_balance"].toString()) ??
               walletController.usdBalance.value;
         }
-        if (b["balance_eur"] != null) {
+        if (b["eur_balance"] != null) {
           walletController.eurBalance.value =
-              double.tryParse(b["balance_eur"].toString()) ??
+              double.tryParse(b["eur_balance"].toString()) ??
               walletController.eurBalance.value;
         }
-        if (b["balance_lbp"] != null) {
+        if (b["lbp_balance"] != null) {
           walletController.lbpBalance.value =
-              double.tryParse(b["balance_lbp"].toString()) ??
+              double.tryParse(b["lbp_balance"].toString()) ??
               walletController.lbpBalance.value;
         }
       }
 
-      // Refresh wallet data to ensure everything is in sync
+      // Extra safety – refresh wallet from API
       await walletController.fetchWalletData();
-
-      // Add to local history
-      walletController.walletTransactions.insert(0, {
-        "title":
-            "Sent to ${recipientNameController.text.isNotEmpty ? recipientNameController.text : recipientEmailController.text}",
-        "amount": amount.value,
-        "type": "debit",
-        "date": _getCurrentDate(),
-        "currency": selectedCurrency.value,
-      });
+      await homeController.fetchDashboardData();
 
       // Success popup
       _showSuccessDialog();
@@ -157,7 +151,8 @@ class SendMoneyController extends GetxController {
       Get.snackbar(
         "Error",
         e is DioException
-            ? e.response?.data["message"] ?? "Failed to send money"
+            ? (e.response?.data["message"]?.toString() ??
+                  "Failed to send money")
             : "Failed to send money.",
         backgroundColor: Colors.red,
         colorText: Colors.white,
@@ -451,5 +446,25 @@ class SendMoneyController extends GetxController {
     recipientPhoneController.dispose();
     noteController.dispose();
     super.onClose();
+  }
+
+  @override
+  void onInit() {
+    super.onInit();
+
+    final home = Get.find<HomeController>();
+
+    if (home.accountStatus.value != 'active') {
+      Get.snackbar(
+        'Account Not Active',
+        'You cannot send money until your account is verified.',
+        backgroundColor: Colors.orange,
+        colorText: Colors.white,
+      );
+
+      Future.delayed(const Duration(milliseconds: 300), () {
+        Get.back();
+      });
+    }
   }
 }

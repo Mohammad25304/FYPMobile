@@ -12,4 +12,7 @@ class AppRoute {
   static const String resetPassword = '/resetPassword';
   static const String forgotPasswordOtp = '/forgotPasswordOtp';
   static const String payment = '/payment';
+  static const String detail = '/detail';
+  static const String profile = '/profile';
+  static const String service = '/service';
 }

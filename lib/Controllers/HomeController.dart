@@ -23,8 +23,12 @@ class HomeController extends GetxController {
   var selectedCurrency = 'USD'.obs;
 
   // Income and Expenses
-  var totalIncome = 0.0.obs;
-  var totalExpenses = 0.0.obs;
+  var total_usd_Income = 0.0.obs;
+  var total_eur_Income = 0.0.obs;
+  var total_lbp_Income = 0.0.obs;
+  var total_usd_Expenses = 0.0.obs;
+  var total_eur_Expenses = 0.0.obs;
+  var total_lbp_Expenses = 0.0.obs;
 
   // Example lists
   var quickActions = [
@@ -43,6 +47,9 @@ class HomeController extends GetxController {
   ].obs;
 
   var recentTransactions = <Map<String, dynamic>>[].obs;
+
+  //account status
+  var accountStatus = 'pending'.obs;
 
   final _dio = DioClient().getInstance();
 
@@ -96,7 +103,7 @@ class HomeController extends GetxController {
       final data = response.data;
 
       // User info
-      userName.value = data['user']['name'] ?? 'User';
+      accountStatus.value = data['user']['account_status'] ?? 'pending';
 
       // Wallet balances
       final wallet = data['wallet'] ?? {};
@@ -112,9 +119,21 @@ class HomeController extends GetxController {
       }
 
       // Stats
+      // Stats
       final stats = wallet['stats'] ?? {};
-      totalIncome.value = double.tryParse('${stats['income'] ?? 0}') ?? 0.0;
-      totalExpenses.value = double.tryParse('${stats['expenses'] ?? 0}') ?? 0.0;
+      final income = stats['income'] ?? {};
+      final expenses = stats['expenses'] ?? {};
+
+      total_usd_Income.value = double.tryParse('${income['USD'] ?? 0}') ?? 0.0;
+      total_eur_Income.value = double.tryParse('${income['EUR'] ?? 0}') ?? 0.0;
+      total_lbp_Income.value = double.tryParse('${income['LBP'] ?? 0}') ?? 0.0;
+
+      total_usd_Expenses.value =
+          double.tryParse('${expenses['USD'] ?? 0}') ?? 0.0;
+      total_eur_Expenses.value =
+          double.tryParse('${expenses['EUR'] ?? 0}') ?? 0.0;
+      total_lbp_Expenses.value =
+          double.tryParse('${expenses['LBP'] ?? 0}') ?? 0.0;
 
       // Keep backward compatibility with old API
       walletBalance.value = currentBalance;

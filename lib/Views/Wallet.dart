@@ -1,7 +1,11 @@
+import 'package:cashpilot/Controllers/DetailsController.dart';
 import 'package:cashpilot/Controllers/HomeController.dart';
 import 'package:cashpilot/Controllers/PaymentController.dart';
+import 'package:cashpilot/Controllers/ServiceController.dart';
+import 'package:cashpilot/Views/Details.dart';
 import 'package:cashpilot/Views/Home.dart';
 import 'package:cashpilot/Views/Payment.dart';
+import 'package:cashpilot/Views/Service.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:cashpilot/Controllers/WalletController.dart';
@@ -46,7 +50,7 @@ class Wallet extends GetView<WalletController> {
             ),
             child: IconButton(
               onPressed: () {
-                // TODO: Transaction history
+                Get.to(Payment());
               },
               icon: const Icon(Icons.history_rounded, color: Colors.white),
             ),
@@ -94,10 +98,12 @@ class Wallet extends GetView<WalletController> {
               Get.to(() => Payment());
               break;
             case 3:
-              //New page
+              Get.put(ServiceController());
+              Get.to(Service());
               break;
             case 4:
-              //New page
+              Get.put(DetailsController());
+              Get.to(Details());
               break;
           }
         },
@@ -123,8 +129,8 @@ class Wallet extends GetView<WalletController> {
             label: "Services",
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            activeIcon: Icon(Icons.person_rounded),
+            icon: Icon(Icons.menu_outlined),
+            activeIcon: Icon(Icons.menu_rounded),
             label: "Details",
           ),
         ],
@@ -418,7 +424,7 @@ class Wallet extends GetView<WalletController> {
                 const SizedBox(height: 6),
                 Obx(
                   () => Text(
-                    '\$${controller.totalIncome.value.toStringAsFixed(2)}',
+                    '${controller.selectedSymbol}${controller.selectedIncome.toStringAsFixed(controller.selectedCurrency.value == "LBP" ? 0 : 2)}',
                     style: const TextStyle(
                       color: Color(0xFF1E293B),
                       fontSize: 20,
@@ -472,7 +478,7 @@ class Wallet extends GetView<WalletController> {
                 const SizedBox(height: 6),
                 Obx(
                   () => Text(
-                    '\$${controller.totalExpenses.value.toStringAsFixed(2)}',
+                    '${controller.selectedSymbol}${controller.selectedExpenses.toStringAsFixed(controller.selectedCurrency.value == "LBP" ? 0 : 2)}',
                     style: const TextStyle(
                       color: Color(0xFF1E293B),
                       fontSize: 20,
@@ -611,7 +617,7 @@ class Wallet extends GetView<WalletController> {
             ),
             TextButton(
               onPressed: () {
-                // TODO: View all transactions
+                Get.to(Payment());
               },
               child: const Text(
                 'View All',
@@ -776,7 +782,13 @@ class Wallet extends GetView<WalletController> {
                             children: [
                               Text(
                                 (isDebit ? "-" : "+") +
-                                    "\$${amount.toStringAsFixed(2)}",
+                                    "${tx["currency"] == "USD"
+                                            ? "\$"
+                                            : tx["currency"] == "EUR"
+                                            ? "€"
+                                            : "LL"}"
+                                        "${amount.toStringAsFixed(tx["currency"] == "LBP" ? 0 : 2)}",
+
                                 style: TextStyle(
                                   fontSize: 17,
                                   fontWeight: FontWeight.w800,

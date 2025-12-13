@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:qr_flutter/qr_flutter.dart';
 import 'package:cashpilot/Controllers/SendMoneyController.dart';
 
 class SendMoney extends GetView<SendMoneyController> {
@@ -9,8 +8,7 @@ class SendMoney extends GetView<SendMoneyController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      resizeToAvoidBottomInset: true,
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: const Color(0xFFF5F7FA),
 
       appBar: _appBar(),
       body: SafeArea(
@@ -20,18 +18,18 @@ class SendMoney extends GetView<SendMoneyController> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _currencySelector(),
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
 
               _amountInput(),
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
 
-              _recipientSelector(),
-              const SizedBox(height: 24),
+              _recipientSection(),
+              const SizedBox(height: 20),
 
-              _noteInput(),
-              const SizedBox(height: 32),
+              _noteSection(),
+              const SizedBox(height: 25),
 
-              _transactionSummary(),
+              _summarySection(),
               const SizedBox(height: 30),
 
               _sendButton(),
@@ -42,71 +40,57 @@ class SendMoney extends GetView<SendMoneyController> {
     );
   }
 
-  // ============================
-  // APP BAR
-  // ============================
+  // APP BAR ----------------------------------------------------
   AppBar _appBar() {
     return AppBar(
-      backgroundColor: Colors.transparent,
       elevation: 0,
-      toolbarHeight: 70,
-      leading: IconButton(
-        onPressed: () => Get.back(),
-        icon: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 10,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: const Icon(Icons.arrow_back_rounded, color: Color(0xFF1E293B)),
-        ),
-      ),
+      backgroundColor: Colors.transparent,
+      toolbarHeight: 80,
       flexibleSpace: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: [Color(0xFF1E88E5), Color(0xFF1565C0)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
           ),
         ),
       ),
       title: const Text(
         "Send Money",
-        style: TextStyle(
-          fontSize: 20,
-          fontWeight: FontWeight.w700,
-          color: Colors.white,
+        style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
+      ),
+      centerTitle: true,
+      leading: Padding(
+        padding: const EdgeInsets.only(left: 10),
+        child: IconButton(
+          onPressed: () => Get.back(),
+          icon: Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.arrow_back, color: Colors.white),
+          ),
         ),
       ),
     );
   }
 
-  // ============================
-  // CURRENCY SELECTOR
-  // ============================
+  // CURRENCY SELECTOR -----------------------------------------
   Widget _currencySelector() {
-    return _card(
+    return _sectionCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _label("Select Currency"),
+          _label("Choose Currency"),
           const SizedBox(height: 16),
 
           Obx(
             () => Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _currencyOption("USD", "\$", controller.usdBalance),
-                const SizedBox(width: 10),
-                _currencyOption("EUR", "€", controller.eurBalance),
-                const SizedBox(width: 10),
-                _currencyOption("LBP", "LL", controller.lbpBalance),
+                _currencyBox("USD", "\$", controller.usdBalance),
+                _currencyBox("EUR", "€", controller.eurBalance),
+                _currencyBox("LBP", "LL", controller.lbpBalance),
               ],
             ),
           ),
@@ -115,72 +99,71 @@ class SendMoney extends GetView<SendMoneyController> {
     );
   }
 
-  Widget _currencyOption(String code, String symbol, double balance) {
+  Widget _currencyBox(String code, String symbol, double balance) {
+    final selected = controller.selectedCurrency.value == code;
+
     return Expanded(
-      child: Obx(
-        () => InkWell(
-          borderRadius: BorderRadius.circular(16),
-          onTap: () => controller.selectCurrency(code),
-          child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            decoration: BoxDecoration(
-              gradient: controller.selectedCurrency.value == code
-                  ? const LinearGradient(
-                      colors: [Color(0xFF1E88E5), Color(0xFF1565C0)],
-                    )
-                  : null,
-              color: controller.selectedCurrency.value == code
-                  ? null
-                  : const Color(0xFFF1F5F9),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: controller.selectedCurrency.value == code
-                    ? const Color(0xFF1E88E5)
-                    : Colors.transparent,
-                width: 2,
+      child: GestureDetector(
+        onTap: () => controller.selectCurrency(code),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          margin: const EdgeInsets.symmetric(horizontal: 5),
+          decoration: BoxDecoration(
+            gradient: selected
+                ? const LinearGradient(
+                    colors: [Color(0xFF1E88E5), Color(0xFF1565C0)],
+                  )
+                : null,
+            color: selected ? null : Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: selected ? Colors.transparent : Colors.grey.shade300,
+              width: 2,
+            ),
+            boxShadow: selected
+                ? [
+                    BoxShadow(
+                      color: Colors.blue.withOpacity(0.3),
+                      blurRadius: 12,
+                    ),
+                  ]
+                : [],
+          ),
+          child: Column(
+            children: [
+              Text(
+                code,
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: selected ? Colors.white : Colors.black87,
+                ),
               ),
-            ),
-            child: Column(
-              children: [
-                Text(
-                  code,
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                    color: controller.selectedCurrency.value == code
-                        ? Colors.white
-                        : const Color(0xFF1E293B),
-                  ),
+              const SizedBox(height: 4),
+              Text(
+                "$symbol${balance.toStringAsFixed(2)}",
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: selected ? Colors.white70 : Colors.grey[600],
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  "$symbol${_formatBalance(balance, code)}",
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: controller.selectedCurrency.value == code
-                        ? Colors.white70
-                        : const Color(0xFF64748B),
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
 
-  // ============================
-  // AMOUNT INPUT
-  // ============================
+  // AMOUNT INPUT ----------------------------------------------
   Widget _amountInput() {
-    return _card(
+    return _sectionCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _label("Enter Amount"),
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
 
           Row(
             children: [
@@ -188,116 +171,89 @@ class SendMoney extends GetView<SendMoneyController> {
                 () => Text(
                   controller.currencySymbol,
                   style: const TextStyle(
-                    fontSize: 36,
-                    fontWeight: FontWeight.w800,
+                    fontSize: 40,
+                    fontWeight: FontWeight.bold,
                     color: Color(0xFF1E88E5),
                   ),
                 ),
               ),
-              const SizedBox(width: 8),
-
+              const SizedBox(width: 6),
               Expanded(
                 child: TextField(
                   controller: controller.amountController,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
+                  keyboardType: TextInputType.number,
+                  onChanged: controller.updateAmount,
                   style: const TextStyle(
-                    fontSize: 36,
-                    fontWeight: FontWeight.w800,
-                    color: Color(0xFF1E293B),
+                    fontSize: 40,
+                    fontWeight: FontWeight.bold,
                   ),
                   decoration: const InputDecoration(
-                    border: InputBorder.none,
                     hintText: "0.00",
-                    hintStyle: TextStyle(
-                      color: Color(0xFFCBD5E1),
-                      fontWeight: FontWeight.w800,
-                    ),
+                    border: InputBorder.none,
                   ),
-                  onChanged: controller.updateAmount,
                 ),
               ),
             ],
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
 
-          Obx(
-            () => Row(
+          Obx(() {
+            final fee = controller.calculateFee();
+            final total = controller.amount.value + fee;
+
+            return Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  "Available: ${controller.currencySymbol}${_formatBalance(controller.availableBalance, controller.selectedCurrency.value)}",
+                  "Available: ${controller.currencySymbol}${controller.availableBalance.toStringAsFixed(2)}",
                   style: TextStyle(
-                    fontSize: 13,
                     color: Colors.grey[600],
                     fontWeight: FontWeight.w600,
                   ),
                 ),
 
                 if (controller.amount.value > 0 &&
-                    controller.amount.value <= controller.availableBalance)
-                  _statusBadge("✓ Valid", Colors.green),
+                    total <= controller.availableBalance)
+                  _badge("Valid ✓", Colors.green),
 
-                if (controller.amount.value > controller.availableBalance)
-                  _statusBadge("Insufficient", Colors.red),
+                if (controller.amount.value > 0 &&
+                    total > controller.availableBalance)
+                  _badge("Insufficient", Colors.red),
               ],
-            ),
-          ),
+            );
+          }),
         ],
       ),
     );
   }
 
-  Widget _statusBadge(String text, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(
-        text,
-        style: TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w700,
-          color: color,
-        ),
-      ),
-    );
-  }
-
-  // ============================
-  // RECIPIENT SELECTOR
-  // ============================
-  Widget _recipientSelector() {
-    return _card(
+  // RECIPIENT SECTION -----------------------------------------
+  Widget _recipientSection() {
+    return _sectionCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _label("Send To"),
+          _label("Recipient Details"),
           const SizedBox(height: 16),
 
           _inputField(
             controller.recipientEmailController,
-            "Enter recipient email",
+            "Recipient Email",
             Icons.email_outlined,
           ),
-
           const SizedBox(height: 12),
 
           _inputField(
             controller.recipientNameController,
-            "Recipient name (optional)",
-            Icons.person_outline_rounded,
+            "Recipient Name (optional)",
+            Icons.person_outline,
           ),
-
           const SizedBox(height: 12),
 
           _inputField(
             controller.recipientPhoneController,
-            "Recipient phone (optional)",
+            "Phone (optional)",
             Icons.phone_outlined,
             keyboard: TextInputType.phone,
           ),
@@ -306,51 +262,48 @@ class SendMoney extends GetView<SendMoneyController> {
     );
   }
 
-  // ============================
-  // NOTE INPUT
-  // ============================
-  Widget _noteInput() {
-    return _card(
+  // NOTE SECTION ----------------------------------------------
+  Widget _noteSection() {
+    return _sectionCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _label("Note (Optional)"),
-          const SizedBox(height: 12),
+          _label("Add Note (Optional)"),
+          const SizedBox(height: 10),
 
           TextField(
             controller: controller.noteController,
             maxLines: 3,
-            decoration: _inputDecoration("Add a note for this transaction..."),
+            decoration: _inputDecoration("Write a short message..."),
           ),
         ],
       ),
     );
   }
 
-  // ============================
-  // TRANSACTION SUMMARY
-  // ============================
-  Widget _transactionSummary() {
+  // SUMMARY SECTION -------------------------------------------
+  Widget _summarySection() {
     return Obx(() {
       if (controller.amount.value == 0) return const SizedBox.shrink();
 
       final fee = controller.calculateFee();
       final total = controller.amount.value + fee;
 
-      return _card(
+      return _sectionCard(
         gradient: true,
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _summaryRow("Amount", controller.amount.value),
             const SizedBox(height: 12),
 
-            _summaryRow("Transaction Fee", fee),
+            _summaryRow("Service Fee", fee),
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 12),
-              child: Divider(),
+              child: Divider(color: Colors.white54),
             ),
 
-            _summaryRow("Total", total, bold: true),
+            _summaryRow("Total to Pay", total, bold: true),
           ],
         ),
       );
@@ -364,17 +317,18 @@ class SendMoney extends GetView<SendMoneyController> {
         Text(
           title,
           style: TextStyle(
-            fontSize: bold ? 16 : 14,
-            fontWeight: bold ? FontWeight.w700 : FontWeight.w600,
+            fontSize: bold ? 17 : 14,
+            fontWeight: bold ? FontWeight.bold : FontWeight.w600,
+            color: bold ? Colors.white : Colors.white70,
           ),
         ),
         Obx(
           () => Text(
             "${controller.currencySymbol}${amount.toStringAsFixed(2)}",
             style: TextStyle(
-              fontSize: bold ? 18 : 15,
-              fontWeight: bold ? FontWeight.w800 : FontWeight.w700,
-              color: bold ? const Color(0xFF1E88E5) : Colors.black87,
+              fontSize: bold ? 20 : 15,
+              fontWeight: bold ? FontWeight.w800 : FontWeight.w600,
+              color: Colors.white,
             ),
           ),
         ),
@@ -382,14 +336,13 @@ class SendMoney extends GetView<SendMoneyController> {
     );
   }
 
-  // ============================
-  // SEND BUTTON
-  // ============================
+  // SEND BUTTON ------------------------------------------------
   Widget _sendButton() {
     return Obx(
       () => GestureDetector(
         onTap: controller.canSend ? controller.sendMoney : null,
-        child: Container(
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
           width: double.infinity,
           padding: const EdgeInsets.symmetric(vertical: 18),
           decoration: BoxDecoration(
@@ -403,20 +356,16 @@ class SendMoney extends GetView<SendMoneyController> {
             boxShadow: controller.canSend
                 ? [
                     BoxShadow(
-                      color: const Color(0xFF1E88E5).withOpacity(0.4),
-                      blurRadius: 15,
-                      offset: const Offset(0, 8),
+                      color: Colors.blue.withOpacity(0.4),
+                      blurRadius: 14,
+                      offset: const Offset(0, 6),
                     ),
                   ]
-                : null,
+                : [],
           ),
-
           child: controller.isSending.value
               ? const Center(
-                  child: CircularProgressIndicator(
-                    color: Colors.white,
-                    strokeWidth: 3,
-                  ),
+                  child: CircularProgressIndicator(color: Colors.white),
                 )
               : Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -445,79 +394,51 @@ class SendMoney extends GetView<SendMoneyController> {
     );
   }
 
-  // ============================
-  // HELPERS
-  // ============================
-  Widget _card({required Widget child, bool gradient = false}) {
+  // --------- HELPERS -----------------------------------------
+
+  Widget _sectionCard({required Widget child, bool gradient = false}) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: gradient
-            ? LinearGradient(
-                colors: [
-                  const Color(0xFF1E88E5).withOpacity(0.1),
-                  const Color(0xFF1565C0).withOpacity(0.05),
-                ],
+            ? const LinearGradient(
+                colors: [Color(0xFF1E88E5), Color(0xFF1565C0)],
               )
             : null,
         color: gradient ? null : Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: gradient
-            ? null
-            : [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.04),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
+        borderRadius: BorderRadius.circular(22),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 20),
+        ],
       ),
       child: child,
     );
   }
 
-  Widget _label(String txt) {
+  Widget _label(String text) {
     return Text(
-      txt,
+      text,
       style: const TextStyle(
-        fontSize: 14,
-        fontWeight: FontWeight.w600,
-        color: Color(0xFF64748B),
+        fontSize: 15,
+        fontWeight: FontWeight.w700,
+        color: Color(0xFF1E293B),
       ),
-    );
-  }
-
-  Widget _inputField(
-    TextEditingController controller,
-    String hint,
-    IconData icon, {
-    TextInputType keyboard = TextInputType.text,
-  }) {
-    return TextField(
-      controller: controller,
-      keyboardType: keyboard,
-      decoration: _inputDecoration(
-        hint,
-      ).copyWith(prefixIcon: Icon(icon, color: const Color(0xFF1E88E5))),
     );
   }
 
   InputDecoration _inputDecoration(String hint) {
     return InputDecoration(
       hintText: hint,
-      hintStyle: TextStyle(
-        color: Colors.grey[400],
-        fontWeight: FontWeight.w500,
-      ),
+      hintStyle: TextStyle(color: Colors.grey[400]),
       filled: true,
-      fillColor: const Color(0xFFF8FAFC),
+      fillColor: const Color(0xFFF1F5F9),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+        borderSide: BorderSide(color: Colors.grey.shade300),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+        borderSide: BorderSide(color: Colors.grey.shade300),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
@@ -526,15 +447,36 @@ class SendMoney extends GetView<SendMoneyController> {
     );
   }
 
-  String _formatBalance(double balance, String currency) {
-    if (currency == "LBP") {
-      return balance
-          .toStringAsFixed(0)
-          .replaceAllMapped(
-            RegExp(r"(\d{1,3})(?=(\d{3})+(?!\d))"),
-            (m) => "${m[1]},",
-          );
-    }
-    return balance.toStringAsFixed(2);
+  Widget _inputField(
+    TextEditingController c,
+    String hint,
+    IconData icon, {
+    TextInputType keyboard = TextInputType.text,
+  }) {
+    return TextField(
+      controller: c,
+      keyboardType: keyboard,
+      decoration: _inputDecoration(
+        hint,
+      ).copyWith(prefixIcon: Icon(icon, color: const Color(0xFF1E88E5))),
+    );
+  }
+
+  Widget _badge(String text, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+          color: color,
+        ),
+      ),
+    );
   }
 }

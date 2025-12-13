@@ -1,8 +1,15 @@
+import 'package:cashpilot/Controllers/DetailsController.dart';
+import 'package:cashpilot/Controllers/HomeController.dart';
+import 'package:cashpilot/Controllers/ServiceController.dart';
+import 'package:cashpilot/Views/Details.dart';
+import 'package:cashpilot/Views/Home.dart';
+import 'package:cashpilot/Views/Service.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:cashpilot/Controllers/PaymentController.dart';
 import 'package:cashpilot/Controllers/WalletController.dart';
 import 'package:cashpilot/Views/Wallet.dart';
+import 'package:intl/intl.dart';
 
 class Payment extends GetView<PaymentController> {
   Payment({super.key});
@@ -13,7 +20,6 @@ class Payment extends GetView<PaymentController> {
   @override
   Widget build(BuildContext context) {
     // Load payments (you can move this to controller.onInit if you prefer)
-    controller.fetchPayments();
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
@@ -244,7 +250,9 @@ class Payment extends GetView<PaymentController> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        item["transacted_at"] ?? "",
+                        DateFormat(
+                          'yyyy-MM-dd',
+                        ).format(DateTime.parse(item["transacted_at"])),
                         style: TextStyle(color: Colors.grey[600], fontSize: 12),
                       ),
                     ],
@@ -254,7 +262,7 @@ class Payment extends GetView<PaymentController> {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
-                      "${item["currency"] ?? ""} ${item["amount"] ?? ""}",
+                      "${item["currency"]} ${item["amount"].toStringAsFixed(2)}",
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 14,
@@ -276,7 +284,9 @@ class Payment extends GetView<PaymentController> {
                         style: TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.w600,
-                          color: isCredit ? Colors.green[700] : Colors.red[700],
+                          color: isCredit
+                              ? Color(0xFF4CAF50)
+                              : Color(0xFFE53935),
                         ),
                       ),
                     ),
@@ -316,20 +326,22 @@ class Payment extends GetView<PaymentController> {
         onTap: (index) {
           switch (index) {
             case 0:
-              Get.back();
+              Get.put(HomeController());
+              Get.to(() => Home());
               break;
             case 1:
               Get.put(WalletController());
               Get.off(() => Wallet());
               break;
             case 2:
-              // Already on Payments
               break;
             case 3:
-              // Services page
+              Get.put(ServiceController());
+              Get.to(() => Service());
               break;
             case 4:
-              // Profile / Details page
+              Get.put(DetailsController());
+              Get.to(Details());
               break;
           }
         },
@@ -355,9 +367,9 @@ class Payment extends GetView<PaymentController> {
             label: "Services",
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            activeIcon: Icon(Icons.person_rounded),
-            label: "Profile",
+            icon: Icon(Icons.menu_outlined),
+            activeIcon: Icon(Icons.menu_rounded),
+            label: "Details",
           ),
         ],
       ),

@@ -18,54 +18,19 @@ class WalletController extends GetxController {
   RxString selectedCurrency = 'USD'.obs;
 
   // Stats
-  RxDouble totalIncome = 0.0.obs;
-  RxDouble totalExpenses = 0.0.obs;
+  RxDouble total_usd_Income = 0.0.obs;
+  RxDouble total_eur_Income = 0.0.obs;
+  RxDouble total_lbp_Income = 0.0.obs;
+
+  RxDouble total_usd_Expenses = 0.0.obs;
+  RxDouble total_eur_Expenses = 0.0.obs;
+  RxDouble total_lbp_Expenses = 0.0.obs;
 
   // Transaction history
   RxList<Map<String, dynamic>> walletTransactions =
       <Map<String, dynamic>>[].obs;
 
   final Dio _dio = DioClient().getInstance();
-
-  // ---------------------------------------------------------------------------
-  // GETTERS
-  // ---------------------------------------------------------------------------
-
-  /// Returns symbol for selected currency
-  String get currencySymbol {
-    switch (selectedCurrency.value) {
-      case 'EUR':
-        return '€';
-      case 'LBP':
-        return 'LL';
-      default:
-        return '\$';
-    }
-  }
-
-  /// Pretty currency name
-  String get currencyName {
-    switch (selectedCurrency.value) {
-      case 'EUR':
-        return 'Euro';
-      case 'LBP':
-        return 'Lebanese Pound';
-      default:
-        return 'US Dollar';
-    }
-  }
-
-  /// Based on user-selected currency
-  double get currentBalance {
-    switch (selectedCurrency.value) {
-      case 'EUR':
-        return eurBalance.value;
-      case 'LBP':
-        return lbpBalance.value;
-      default:
-        return usdBalance.value;
-    }
-  }
 
   // ---------------------------------------------------------------------------
   // LIFECYCLE
@@ -78,6 +43,79 @@ class WalletController extends GetxController {
   }
 
   // ---------------------------------------------------------------------------
+  // CURRENCY HELPERS
+  // ---------------------------------------------------------------------------
+
+  String get currencySymbol {
+    switch (selectedCurrency.value) {
+      case 'EUR':
+        return '€';
+      case 'LBP':
+        return 'LL';
+      default:
+        return '\$';
+    }
+  }
+
+  String get currencyName {
+    switch (selectedCurrency.value) {
+      case 'EUR':
+        return 'Euro';
+      case 'LBP':
+        return 'Lebanese Pound';
+      default:
+        return 'US Dollar';
+    }
+  }
+
+  double get currentBalance {
+    switch (selectedCurrency.value) {
+      case 'EUR':
+        return eurBalance.value;
+      case 'LBP':
+        return lbpBalance.value;
+      default:
+        return usdBalance.value;
+    }
+  }
+
+  // INCOME SELECTION
+  double get selectedIncome {
+    switch (selectedCurrency.value) {
+      case 'EUR':
+        return total_eur_Income.value;
+      case 'LBP':
+        return total_lbp_Income.value;
+      default:
+        return total_usd_Income.value;
+    }
+  }
+
+  // EXPENSES SELECTION
+  double get selectedExpenses {
+    switch (selectedCurrency.value) {
+      case 'EUR':
+        return total_eur_Expenses.value;
+      case 'LBP':
+        return total_lbp_Expenses.value;
+      default:
+        return total_usd_Expenses.value;
+    }
+  }
+
+  // Symbol for UI formatting
+  String get selectedSymbol {
+    switch (selectedCurrency.value) {
+      case 'EUR':
+        return '€';
+      case 'LBP':
+        return 'LL';
+      default:
+        return '\$';
+    }
+  }
+
+  // ---------------------------------------------------------------------------
   // ACTIONS
   // ---------------------------------------------------------------------------
 
@@ -86,7 +124,7 @@ class WalletController extends GetxController {
   }
 
   // ---------------------------------------------------------------------------
-  // FETCH WALLET DATA FROM BACKEND
+  // FETCH WALLET DATA
   // ---------------------------------------------------------------------------
 
   Future<void> fetchWalletData() async {
@@ -100,9 +138,7 @@ class WalletController extends GetxController {
       final balances = data['currency_balances'] ?? {};
 
       usdBalance.value = double.tryParse('${balances['USD'] ?? 0}') ?? 0.0;
-
       eurBalance.value = double.tryParse('${balances['EUR'] ?? 0}') ?? 0.0;
-
       lbpBalance.value = double.tryParse('${balances['LBP'] ?? 0}') ?? 0.0;
 
       // --- Default currency ---
@@ -112,11 +148,21 @@ class WalletController extends GetxController {
 
       // --- Stats ---
       final stats = data['stats'] ?? {};
-      totalIncome.value = double.tryParse('${stats['income'] ?? 0}') ?? 0.0;
+      final income = stats['income'] ?? {};
+      final expenses = stats['expenses'] ?? {};
 
-      totalExpenses.value = double.tryParse('${stats['expenses'] ?? 0}') ?? 0.0;
+      total_usd_Income.value = double.tryParse('${income['USD'] ?? 0}') ?? 0.0;
+      total_eur_Income.value = double.tryParse('${income['EUR'] ?? 0}') ?? 0.0;
+      total_lbp_Income.value = double.tryParse('${income['LBP'] ?? 0}') ?? 0.0;
 
-      // --- Transactions History ---
+      total_usd_Expenses.value =
+          double.tryParse('${expenses['USD'] ?? 0}') ?? 0.0;
+      total_eur_Expenses.value =
+          double.tryParse('${expenses['EUR'] ?? 0}') ?? 0.0;
+      total_lbp_Expenses.value =
+          double.tryParse('${expenses['LBP'] ?? 0}') ?? 0.0;
+
+      // --- Transactions ---
       final txList = data['transactions'] as List<dynamic>? ?? [];
 
       walletTransactions.assignAll(
@@ -148,11 +194,10 @@ class WalletController extends GetxController {
   }
 
   // ---------------------------------------------------------------------------
-  // METHOD TO UPDATE WALLET LOCALLY AFTER SEND / RECEIVE MONEY
+  // LOCAL UPDATE AFTER SEND / RECEIVE
   // ---------------------------------------------------------------------------
 
   void applyUpdatedBalances(Map<String, dynamic> balanceMap) {
-    // Update balances locally first for immediate UI feedback
     if (balanceMap.containsKey('USD')) {
       usdBalance.value =
           double.tryParse('${balanceMap['USD']}') ?? usdBalance.value;
@@ -165,13 +210,11 @@ class WalletController extends GetxController {
       lbpBalance.value =
           double.tryParse('${balanceMap['LBP']}') ?? lbpBalance.value;
     }
-
-    // Refresh everything from backend to stay in sync
     fetchWalletData();
   }
 
   // ---------------------------------------------------------------------------
-  // ADD A TRANSACTION TO HISTORY (used by SendMoneyController)
+  // ADD TRANSACTION + RECALCULATE
   // ---------------------------------------------------------------------------
 
   void addTransaction(Map<String, dynamic> tx) {
@@ -179,26 +222,32 @@ class WalletController extends GetxController {
     recalculateStats();
   }
 
-  // ---------------------------------------------------------------------------
-  // RECALCULATE TOTAL INCOME & EXPENSES
-  // ---------------------------------------------------------------------------
-
   void recalculateStats() {
-    double income = 0.0;
-    double expenses = 0.0;
+    double usdIncome = 0, eurIncome = 0, lbpIncome = 0;
+    double usdExpenses = 0, eurExpenses = 0, lbpExpenses = 0;
 
     for (var tx in walletTransactions) {
-      // Only count transactions in the selected currency
-      if (tx['currency'] == selectedCurrency.value) {
-        if (tx['type'] == 'credit') {
-          income += tx['amount'];
-        } else if (tx['type'] == 'debit') {
-          expenses += tx['amount'];
-        }
+      final amount = tx['amount'] ?? 0.0;
+      final currency = tx['currency'] ?? 'USD';
+      final type = tx['type'];
+
+      if (type == 'credit') {
+        if (currency == 'USD') usdIncome += amount;
+        if (currency == 'EUR') eurIncome += amount;
+        if (currency == 'LBP') lbpIncome += amount;
+      } else if (type == 'debit') {
+        if (currency == 'USD') usdExpenses += amount;
+        if (currency == 'EUR') eurExpenses += amount;
+        if (currency == 'LBP') lbpExpenses += amount;
       }
     }
 
-    totalIncome.value = income;
-    totalExpenses.value = expenses;
+    total_usd_Income.value = usdIncome;
+    total_eur_Income.value = eurIncome;
+    total_lbp_Income.value = lbpIncome;
+
+    total_usd_Expenses.value = usdExpenses;
+    total_eur_Expenses.value = eurExpenses;
+    total_lbp_Expenses.value = lbpExpenses;
   }
 }

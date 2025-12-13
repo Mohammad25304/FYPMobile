@@ -1,5 +1,11 @@
+import 'package:cashpilot/Controllers/DetailsController.dart';
 import 'package:cashpilot/Controllers/PaymentController.dart';
+import 'package:cashpilot/Controllers/ProfileController.dart';
+import 'package:cashpilot/Controllers/ServiceController.dart';
+import 'package:cashpilot/Views/Details.dart';
 import 'package:cashpilot/Views/Payment.dart';
+import 'package:cashpilot/Views/Profile.dart';
+import 'package:cashpilot/Views/Service.dart';
 import 'package:cashpilot/Views/Wallet.dart';
 import 'package:cashpilot/Controllers/WalletController.dart';
 import 'package:flutter/material.dart';
@@ -80,7 +86,10 @@ class Home extends GetView<HomeController> {
             ),
             child: IconButton(
               onPressed: () {
-                //profile page
+                if (!Get.isRegistered<ProfileController>()) {
+                  Get.put(ProfileController());
+                }
+                Get.to(() => const Profile());
               },
               icon: const Icon(Icons.person_outline, color: Colors.white),
             ),
@@ -146,10 +155,12 @@ class Home extends GetView<HomeController> {
                 Get.to(() => Payment());
                 break;
               case 3:
-                //New page
+                Get.put(ServiceController());
+                Get.to(() => Service());
                 break;
               case 4:
-                //New page
+                Get.put(DetailsController());
+                Get.to(Details());
                 break;
             }
           },
@@ -175,8 +186,8 @@ class Home extends GetView<HomeController> {
               label: "Services",
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.person_outline),
-              activeIcon: Icon(Icons.person_rounded),
+              icon: Icon(Icons.menu_outlined),
+              activeIcon: Icon(Icons.menu_rounded),
               label: "Details",
             ),
           ],
@@ -331,7 +342,11 @@ class Home extends GetView<HomeController> {
                                 const SizedBox(height: 2),
                                 Obx(
                                   () => Text(
-                                    _formatAmount(controller.totalIncome.value),
+                                    _formatAmount(
+                                      controller.total_usd_Income.value,
+                                      controller.total_eur_Income.value,
+                                      controller.total_lbp_Income.value,
+                                    ),
                                     style: const TextStyle(
                                       color: Colors.white,
                                       fontSize: 14,
@@ -379,7 +394,9 @@ class Home extends GetView<HomeController> {
                                 Obx(
                                   () => Text(
                                     _formatAmount(
-                                      controller.totalExpenses.value,
+                                      controller.total_usd_Expenses.value,
+                                      controller.total_eur_Expenses.value,
+                                      controller.total_lbp_Expenses.value,
                                     ),
                                     style: const TextStyle(
                                       color: Colors.white,
@@ -471,17 +488,17 @@ class Home extends GetView<HomeController> {
     }
   }
 
-  String _formatAmount(double amount) {
+  String _formatAmount(double usd, double eur, double lbp) {
     final currency = controller.selectedCurrency.value;
 
     switch (currency) {
       case 'EUR':
-        return '€${amount.toStringAsFixed(2)}';
+        return '€${eur.toStringAsFixed(2)}';
       case 'LBP':
-        return 'LL${amount.toStringAsFixed(0)}';
+        return 'LL${lbp.toStringAsFixed(0)}';
       case 'USD':
       default:
-        return '\$${amount.toStringAsFixed(2)}';
+        return '\$${usd.toStringAsFixed(2)}';
     }
   }
 
@@ -505,6 +522,17 @@ class Home extends GetView<HomeController> {
               label: 'Send',
               color: const Color(0xFF1E88E5),
               onTap: () {
+                if (controller.accountStatus.value != 'active') {
+                  Get.snackbar(
+                    'Account Not Active',
+                    'You must complete verification before sending money.',
+                    backgroundColor: Colors.orange,
+                    colorText: Colors.white,
+                    snackPosition: SnackPosition.BOTTOM,
+                  );
+                  return;
+                }
+
                 Get.toNamed('/sendMoney');
               },
             ),
@@ -712,7 +740,9 @@ class Home extends GetView<HomeController> {
               ),
             ),
             TextButton(
-              onPressed: () {},
+              onPressed: () {
+                Get.to(Payment());
+              },
               child: const Text(
                 'View All',
                 style: TextStyle(
