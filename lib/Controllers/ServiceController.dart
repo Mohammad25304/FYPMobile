@@ -14,6 +14,8 @@ class ServiceController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    print('✅ ServiceController INIT');
+    print('Account status: ${homeController.accountStatus.value}');
     fetchServices();
   }
 
@@ -30,9 +32,16 @@ class ServiceController extends GetxController {
       isLoading.value = true;
 
       final data = await _api.fetchServices();
-      services.value = data.map((e) => ServiceModel.fromJson(e)).toList();
+
+      services.assignAll(
+        data.map<ServiceModel>((e) => ServiceModel.fromJson(e)).toList(),
+      );
     } catch (e) {
-      Get.snackbar('Error', 'Failed to load services');
+      Get.snackbar(
+        'Error',
+        'Failed to load services',
+        snackPosition: SnackPosition.BOTTOM,
+      );
     } finally {
       isLoading.value = false;
     }

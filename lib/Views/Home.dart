@@ -2,6 +2,7 @@ import 'package:cashpilot/Controllers/DetailsController.dart';
 import 'package:cashpilot/Controllers/PaymentController.dart';
 import 'package:cashpilot/Controllers/ProfileController.dart';
 import 'package:cashpilot/Controllers/ServiceController.dart';
+import 'package:cashpilot/Routes/AppRoute.dart';
 import 'package:cashpilot/Views/Details.dart';
 import 'package:cashpilot/Views/Payment.dart';
 import 'package:cashpilot/Views/Profile.dart';
@@ -156,7 +157,7 @@ class Home extends GetView<HomeController> {
                 break;
               case 3:
                 Get.put(ServiceController());
-                Get.to(() => Service());
+                Get.toNamed(AppRoute.service);
                 break;
               case 4:
                 Get.put(DetailsController());

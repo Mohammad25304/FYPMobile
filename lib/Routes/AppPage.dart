@@ -119,9 +119,9 @@ class AppPage {
     ),
 
     GetPage(
-      name: '/sercive',
+      name: AppRoute.service,
       page: () => const Service(),
-      binding: ServicesBinding(),
+      binding: ServiceBinding(),
     ),
   ];
 }
