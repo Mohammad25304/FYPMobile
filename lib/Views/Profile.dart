@@ -48,35 +48,29 @@ class Profile extends GetView<ProfileController> {
         ),
       ),
       body: SafeArea(
-        child: FutureBuilder(
-          future: controller
-              .fetchProfile(), // 🔥 ALWAYS refresh when opening page
-          builder: (context, snapshot) {
-            return Obx(
-              () => controller.isLoading.value
-                  ? const Center(child: CircularProgressIndicator())
-                  : SingleChildScrollView(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 16,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _buildHeader(),
-                          const SizedBox(height: 24),
-                          _buildAccountInfo(),
-                          const SizedBox(height: 24),
-                          _buildSecuritySection(),
-                          const SizedBox(height: 24),
-                          _buildDocumentsSection(),
-                          const SizedBox(height: 24),
-                          _buildDangerZone(),
-                        ],
-                      ),
-                    ),
-            );
-          },
+        child: Obx(
+          () => controller.isLoading.value
+              ? const Center(child: CircularProgressIndicator())
+              : SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 16,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildHeader(),
+                      const SizedBox(height: 24),
+                      _buildAccountInfo(),
+                      const SizedBox(height: 24),
+                      _buildSecuritySection(),
+                      const SizedBox(height: 24),
+                      _buildDocumentsSection(),
+                      const SizedBox(height: 24),
+                      _buildDangerZone(),
+                    ],
+                  ),
+                ),
         ),
       ),
     );

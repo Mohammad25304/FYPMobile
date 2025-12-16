@@ -156,7 +156,6 @@ class Home extends GetView<HomeController> {
                 Get.to(() => Payment());
                 break;
               case 3:
-                Get.put(ServiceController());
                 Get.toNamed(AppRoute.service);
                 break;
               case 4:
@@ -542,7 +541,9 @@ class Home extends GetView<HomeController> {
               icon: Icons.receipt_long_rounded,
               label: 'Pay Bills',
               color: const Color(0xFFFF6B6B),
-              onTap: () {},
+              onTap: () {
+                Get.toNamed('/service');
+              },
             ),
             const SizedBox(width: 12),
             _quickActionButton(

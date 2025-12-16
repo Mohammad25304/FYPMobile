@@ -7,16 +7,10 @@ class PaymentController extends GetxController {
 
   RxBool isLoading = false.obs;
 
-  /// All transactions from API (raw data)
   RxList<dynamic> allPayments = <dynamic>[].obs;
-
-  /// Payments filtered by date range (shown in UI)
   RxList<dynamic> payments = <dynamic>[].obs;
 
-  /// Selected date for filtering
   Rx<DateTime> selectedDate = DateTime.now().obs;
-
-  /// Selected range type: day, week, month, year
   RxString selectedRangeType = 'day'.obs;
 
   @override
@@ -30,88 +24,63 @@ class PaymentController extends GetxController {
       isLoading.value = true;
 
       final response = await _dio.get("payments");
-
-      // Save all payments
       allPayments.assignAll(response.data["payments"] ?? []);
 
-      // Apply default filter (today)
       applyFilter();
-    } catch (e) {
-      Get.snackbar(
-        "Error",
-        "Failed to load payments",
-        snackPosition: SnackPosition.BOTTOM,
-      );
+    } catch (_) {
+      Get.snackbar("Error", "Failed to load payments");
     } finally {
       isLoading.value = false;
     }
   }
 
-  /// Change selected date from calendar
   void changeSelectedDate(DateTime date) {
     selectedDate.value = date;
     applyFilter();
   }
 
-  /// Change between day/week/month/year
   void changeRangeType(String type) {
     selectedRangeType.value = type;
     applyFilter();
   }
 
-  /// Apply date + range filter
   void applyFilter() {
     if (allPayments.isEmpty) {
       payments.clear();
       return;
     }
 
-    final DateTime base = selectedDate.value;
-
+    final base = selectedDate.value;
     late DateTime start;
     late DateTime end;
 
     switch (selectedRangeType.value) {
-      case 'day':
-        start = DateTime(base.year, base.month, base.day);
-        end = start.add(const Duration(days: 1));
-        break;
-
       case 'week':
-        final int diff = base.weekday - DateTime.monday;
-        start = DateTime(
-          base.year,
-          base.month,
-          base.day,
-        ).subtract(Duration(days: diff));
+        start = base.subtract(Duration(days: base.weekday - 1));
         end = start.add(const Duration(days: 7));
         break;
-
       case 'month':
         start = DateTime(base.year, base.month, 1);
-        end = (base.month == 12)
-            ? DateTime(base.year + 1, 1, 1)
-            : DateTime(base.year, base.month + 1, 1);
+        end = DateTime(base.year, base.month + 1, 1);
         break;
-
       case 'year':
         start = DateTime(base.year, 1, 1);
         end = DateTime(base.year + 1, 1, 1);
         break;
-
       default:
         start = DateTime(base.year, base.month, base.day);
         end = start.add(const Duration(days: 1));
     }
 
     final filtered = allPayments.where((p) {
-      try {
-        if (p["transacted_at"] == null) return false;
+      final rawDate = p["transacted_at"];
+      if (rawDate == null) return true; // ✅ never discard
 
-        final dt = DateTime.parse(p["transacted_at"].toString());
-        return dt.isAfter(start) && dt.isBefore(end);
+      try {
+        final dt = DateTime.parse(rawDate);
+        return !dt.isBefore(start) && dt.isBefore(end); // ✅ inclusive start
       } catch (_) {
-        return false;
+        return true;
       }
     }).toList();
 

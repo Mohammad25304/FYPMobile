@@ -15,4 +15,5 @@ class AppRoute {
   static const String detail = '/detail';
   static const String profile = '/profile';
   static const String service = '/service';
+  static const String sendCashPickup = '/sendCashPickup';
 }

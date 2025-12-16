@@ -4,6 +4,6 @@ import 'package:cashpilot/Controllers/WalletController.dart';
 class WalletBinding extends Bindings {
   @override
   void dependencies() {
-    Get.lazyPut(() => WalletController());
+    Get.put<WalletController>(WalletController(), permanent: true);
   }
 }

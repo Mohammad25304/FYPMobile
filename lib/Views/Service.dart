@@ -1,5 +1,4 @@
 import 'package:cashpilot/Controllers/DetailsController.dart';
-import 'package:cashpilot/Controllers/HomeController.dart';
 import 'package:cashpilot/Controllers/PaymentController.dart';
 import 'package:cashpilot/Controllers/ServiceController.dart';
 import 'package:cashpilot/Controllers/WalletController.dart';
@@ -67,23 +66,27 @@ class Service extends GetView<ServiceController> {
                 delegate: SliverChildBuilderDelegate((context, index) {
                   final service = controller.services[index];
 
-                  final bool locked =
-                      service.requiresActiveAccount &&
-                      !controller.isAccountActive;
+                  return Obx(() {
+                    final bool expanded =
+                        controller.expandedServiceId.value == service.id;
 
-                  final bool expanded =
-                      controller.expandedServiceId.value == service.id;
+                    final bool locked =
+                        service.requiresActiveAccount &&
+                        !controller.isAccountActive;
 
-                  return Padding(
-                    padding: EdgeInsets.only(
-                      bottom: index == controller.services.length - 1 ? 0 : 12,
-                    ),
-                    child: _serviceTile(
-                      service: service,
-                      locked: locked,
-                      expanded: expanded,
-                    ),
-                  );
+                    return Padding(
+                      padding: EdgeInsets.only(
+                        bottom: index == controller.services.length - 1
+                            ? 0
+                            : 12,
+                      ),
+                      child: _serviceTile(
+                        service: service,
+                        locked: locked,
+                        expanded: expanded,
+                      ),
+                    );
+                  });
                 }, childCount: controller.services.length),
               ),
             ),
@@ -100,7 +103,7 @@ class Service extends GetView<ServiceController> {
         onTap: (index) {
           switch (index) {
             case 0:
-              Get.off(() => Home());
+              Get.off(() => const Home());
               break;
             case 1:
               Get.off(() => Wallet());
@@ -153,7 +156,7 @@ class Service extends GetView<ServiceController> {
     required bool expanded,
   }) {
     return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 250),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
@@ -187,6 +190,7 @@ class Service extends GetView<ServiceController> {
             "Please verify your account to access this service",
             backgroundColor: Colors.orange,
             colorText: Colors.white,
+            snackPosition: SnackPosition.BOTTOM,
           );
           return;
         }
@@ -211,18 +215,17 @@ class Service extends GetView<ServiceController> {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  locked
-                      ? const Text(
-                          "Verification required",
-                          style: TextStyle(fontSize: 12, color: Colors.orange),
-                        )
-                      : Text(
-                          expanded ? "Select provider" : "Tap to expand",
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey,
-                          ),
-                        ),
+                  Text(
+                    locked
+                        ? "Verification required"
+                        : expanded
+                        ? "Select provider"
+                        : "Tap to expand",
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: locked ? Colors.orange : Colors.grey,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -252,7 +255,7 @@ class Service extends GetView<ServiceController> {
         ),
         borderRadius: BorderRadius.circular(16),
       ),
-      child: Icon(Icons.apps, color: Colors.white, size: 28),
+      child: const Icon(Icons.apps, color: Colors.white, size: 28),
     );
   }
 

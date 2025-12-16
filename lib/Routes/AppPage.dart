@@ -1,4 +1,5 @@
 import 'package:cashpilot/Bindings/AddMoneyBinding.dart';
+import 'package:cashpilot/Bindings/CashPickupBinding.dart';
 import 'package:cashpilot/Bindings/DetailBinding.dart';
 import 'package:cashpilot/Bindings/ForgetPasswordEmailBinding.dart';
 import 'package:cashpilot/Bindings/ForgetPasswordOTPBinding.dart';
@@ -17,6 +18,7 @@ import 'package:cashpilot/Views/Payment.dart';
 import 'package:cashpilot/Views/Profile.dart';
 import 'package:cashpilot/Views/QrScan.dart';
 import 'package:cashpilot/Views/ResetPassword.dart';
+import 'package:cashpilot/Views/SendCashPickup.dart';
 import 'package:cashpilot/Views/SendMoney.dart';
 import 'package:cashpilot/Views/Service.dart';
 import 'package:cashpilot/Views/TransferMoney.dart';
@@ -122,6 +124,12 @@ class AppPage {
       name: AppRoute.service,
       page: () => const Service(),
       binding: ServiceBinding(),
+    ),
+
+    GetPage(
+      name: AppRoute.sendCashPickup,
+      page: () => const SendCashPickup(),
+      binding: CashPickupBinding(),
     ),
   ];
 }

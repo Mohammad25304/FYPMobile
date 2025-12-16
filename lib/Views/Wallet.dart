@@ -9,6 +9,8 @@ import 'package:cashpilot/Views/Service.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:cashpilot/Controllers/WalletController.dart';
+import 'package:cashpilot/Views/SendCashPickup.dart';
+import 'package:cashpilot/Bindings/CashPickupBinding.dart';
 
 class Wallet extends GetView<WalletController> {
   const Wallet({super.key});
@@ -507,17 +509,18 @@ class Wallet extends GetView<WalletController> {
           ),
         ),
         const SizedBox(height: 16),
+
+        // ROW 1
         Row(
           children: [
             _walletButton(
               icon: Icons.add_rounded,
-              label: "Recive",
+              label: "Receive",
               gradient: const LinearGradient(
                 colors: [Color(0xFF4CAF50), Color(0xFF45A049)],
               ),
               onTap: () {
                 Get.toNamed('/addMoney');
-                // TODO: Add money page
               },
             ),
             const SizedBox(width: 12),
@@ -531,7 +534,14 @@ class Wallet extends GetView<WalletController> {
                 Get.toNamed('/sendMoney');
               },
             ),
-            const SizedBox(width: 12),
+          ],
+        ),
+
+        const SizedBox(height: 12),
+
+        // ROW 2
+        Row(
+          children: [
             _walletButton(
               icon: Icons.swap_horiz_rounded,
               label: "Transfer",
@@ -540,6 +550,22 @@ class Wallet extends GetView<WalletController> {
               ),
               onTap: () {
                 Get.toNamed('/transferMoney');
+              },
+            ),
+            const SizedBox(width: 12),
+
+            // ⭐ SEND CASH PICKUP
+            _walletButton(
+              icon: Icons.local_atm_rounded,
+              label: "Send Cash",
+              gradient: const LinearGradient(
+                colors: [Color(0xFF673AB7), Color(0xFF512DA8)],
+              ),
+              onTap: () {
+                Get.to(
+                  () => const SendCashPickup(),
+                  binding: CashPickupBinding(),
+                );
               },
             ),
           ],
