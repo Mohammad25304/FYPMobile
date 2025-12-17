@@ -1,5 +1,6 @@
 import 'package:cashpilot/Bindings/AddMoneyBinding.dart';
 import 'package:cashpilot/Bindings/CashPickupBinding.dart';
+import 'package:cashpilot/Bindings/ContactInfoBinding.dart';
 import 'package:cashpilot/Bindings/DetailBinding.dart';
 import 'package:cashpilot/Bindings/ForgetPasswordEmailBinding.dart';
 import 'package:cashpilot/Bindings/ForgetPasswordOTPBinding.dart';
@@ -11,6 +12,7 @@ import 'package:cashpilot/Bindings/SendMoneyBinding.dart';
 import 'package:cashpilot/Bindings/ServiceBinding.dart';
 import 'package:cashpilot/Routes/AppRoute.dart';
 import 'package:cashpilot/Views/AddMoney.dart';
+import 'package:cashpilot/Views/ContactInfo.dart';
 import 'package:cashpilot/Views/ForgetPassword.dart';
 import 'package:cashpilot/Views/ForgetPasswordOtp.dart';
 import 'package:cashpilot/Views/OtpVerificationPage.dart';
@@ -130,6 +132,12 @@ class AppPage {
       name: AppRoute.sendCashPickup,
       page: () => const SendCashPickup(),
       binding: CashPickupBinding(),
+    ),
+
+    GetPage(
+      name: '/contactInfo',
+      page: () => const ContactInfoPage(),
+      binding: ContactInfoBinding(),
     ),
   ];
 }

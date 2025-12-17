@@ -1,9 +1,11 @@
+import 'package:cashpilot/Bindings/ContactInfoBinding.dart';
 import 'package:cashpilot/Bindings/ProfileBinding.dart';
 import 'package:cashpilot/Controllers/HomeController.dart';
 import 'package:cashpilot/Controllers/PaymentController.dart';
 import 'package:cashpilot/Controllers/ServiceController.dart';
 import 'package:cashpilot/Controllers/WalletController.dart';
 import 'package:cashpilot/Controllers/DetailsController.dart';
+import 'package:cashpilot/Views/ContactInfo.dart';
 import 'package:cashpilot/Views/DetailsView.dart';
 import 'package:cashpilot/Views/Home.dart';
 import 'package:cashpilot/Views/Payment.dart';
@@ -64,6 +66,11 @@ class Details extends GetView<DetailsController> {
                           Get.to(
                             () => const Profile(),
                             binding: ProfileBinding(),
+                          );
+                        } else if (item.keyName == 'contact') {
+                          Get.to(
+                            () => const ContactInfoPage(),
+                            binding: ContactInfoBinding(),
                           );
                         } else {
                           Get.to(

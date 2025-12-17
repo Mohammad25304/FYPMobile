@@ -17,6 +17,11 @@ class Wallet extends GetView<WalletController> {
 
   @override
   Widget build(BuildContext context) {
+    // ❌ REMOVE this (it runs on every rebuild and can break your list)
+    // WidgetsBinding.instance.addPostFrameCallback((_) {
+    //   controller.fetchTransactions();
+    // });
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       extendBodyBehindAppBar: false,
@@ -52,7 +57,8 @@ class Wallet extends GetView<WalletController> {
             ),
             child: IconButton(
               onPressed: () {
-                Get.to(Payment());
+                // ✅ refresh wallet after returning from Payments
+                Get.to(() => Payment())?.then((_) => controller.refreshAll());
               },
               icon: const Icon(Icons.history_rounded, color: Colors.white),
             ),
@@ -92,12 +98,10 @@ class Wallet extends GetView<WalletController> {
               Get.to(() => Home());
               break;
             case 1:
-              // Get.put(WalletController());
-              // Get.to(() => Wallet());
               break;
             case 2:
               Get.put(PaymentController());
-              Get.to(() => Payment());
+              Get.to(() => Payment())?.then((_) => controller.refreshAll());
               break;
             case 3:
               Get.put(ServiceController());
@@ -162,7 +166,6 @@ class Wallet extends GetView<WalletController> {
       ),
       child: Stack(
         children: [
-          // Decorative circles
           Positioned(
             right: -40,
             top: -40,
@@ -219,7 +222,6 @@ class Wallet extends GetView<WalletController> {
                       ),
                     ],
                   ),
-                  // Currency Selector
                   Obx(
                     () => PopupMenuButton<String>(
                       onSelected: (String value) {
@@ -311,7 +313,6 @@ class Wallet extends GetView<WalletController> {
     );
   }
 
-  // Helper method to format balance based on currency
   String _formatBalance(double balance) {
     if (controller.selectedCurrency.value == 'LBP') {
       return balance
@@ -324,7 +325,6 @@ class Wallet extends GetView<WalletController> {
     return balance.toStringAsFixed(2);
   }
 
-  // Helper method to build currency menu items
   PopupMenuItem<String> _buildCurrencyMenuItem(
     String code,
     String name,
@@ -509,8 +509,6 @@ class Wallet extends GetView<WalletController> {
           ),
         ),
         const SizedBox(height: 16),
-
-        // ROW 1
         Row(
           children: [
             _walletButton(
@@ -536,10 +534,7 @@ class Wallet extends GetView<WalletController> {
             ),
           ],
         ),
-
         const SizedBox(height: 12),
-
-        // ROW 2
         Row(
           children: [
             _walletButton(
@@ -553,8 +548,6 @@ class Wallet extends GetView<WalletController> {
               },
             ),
             const SizedBox(width: 12),
-
-            // ⭐ SEND CASH PICKUP
             _walletButton(
               icon: Icons.local_atm_rounded,
               label: "Send Cash",
@@ -643,7 +636,7 @@ class Wallet extends GetView<WalletController> {
             ),
             TextButton(
               onPressed: () {
-                Get.to(Payment());
+                Get.to(() => Payment())?.then((_) => controller.refreshAll());
               },
               child: const Text(
                 'View All',
@@ -717,8 +710,27 @@ class Wallet extends GetView<WalletController> {
             itemCount: controller.walletTransactions.length,
             itemBuilder: (context, index) {
               final tx = controller.walletTransactions[index];
-              final isDebit = tx["type"] == "debit";
-              final amount = tx["amount"];
+
+              // ✅ IMPORTANT: DO NOT HIDE exchange credit anymore
+              // This was the reason income never appeared.
+
+              final bool isDebit = tx["type"] == "debit";
+              final double amount =
+                  double.tryParse(tx["amount"].toString()) ?? 0.0;
+              final String currency = tx["currency"] ?? "USD";
+
+              final String category = tx['category'] ?? 'transfer';
+
+              String badgeText;
+              if (category == 'exchange') {
+                badgeText = 'Exchanged';
+              } else if (category == 'send') {
+                badgeText = 'Sent';
+              } else if (category == 'receive') {
+                badgeText = 'Received';
+              } else {
+                badgeText = isDebit ? 'Sent' : 'Received';
+              }
 
               return Container(
                 margin: const EdgeInsets.only(bottom: 12),
@@ -736,9 +748,7 @@ class Wallet extends GetView<WalletController> {
                 child: Material(
                   color: Colors.transparent,
                   child: InkWell(
-                    onTap: () {
-                      // TODO: Transaction details
-                    },
+                    onTap: () {},
                     borderRadius: BorderRadius.circular(18),
                     child: Padding(
                       padding: const EdgeInsets.all(18),
@@ -808,13 +818,12 @@ class Wallet extends GetView<WalletController> {
                             children: [
                               Text(
                                 (isDebit ? "-" : "+") +
-                                    "${tx["currency"] == "USD"
+                                    "${currency == "USD"
                                             ? "\$"
-                                            : tx["currency"] == "EUR"
+                                            : currency == "EUR"
                                             ? "€"
                                             : "LL"}"
-                                        "${amount.toStringAsFixed(tx["currency"] == "LBP" ? 0 : 2)}",
-
+                                        "${amount.toStringAsFixed(currency == "LBP" ? 0 : 2)}",
                                 style: TextStyle(
                                   fontSize: 17,
                                   fontWeight: FontWeight.w800,
@@ -838,7 +847,7 @@ class Wallet extends GetView<WalletController> {
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Text(
-                                  isDebit ? "Sent" : "Received",
+                                  badgeText,
                                   style: TextStyle(
                                     fontSize: 10,
                                     fontWeight: FontWeight.w700,

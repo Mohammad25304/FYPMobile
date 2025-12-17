@@ -111,16 +111,17 @@ class CashPickupController extends GetxController {
       final fee = calculateFee();
       final total = amount.value + fee;
 
-      walletController.addTransaction({
-        'title': 'Cash Pickup',
-        'amount': total,
-        'type': 'debit',
-        'date': DateTime.now().toIso8601String(),
-        'currency': selectedCurrency.value,
-      });
+      // walletController.addTransaction({
+      //   'title': 'Cash Pickup',
+      //   'amount': total,
+      //   'type': 'debit',
+      //   'currency': selectedCurrency.value,
+      //   'category': 'send', // or 'cash_pickup' if you want
+      //   'date': DateTime.now().toIso8601String(),
+      // });
 
       // Refresh wallet & dashboard from backend (source of truth)
-      await walletController.fetchWalletData();
+      await walletController.refreshAll();
       await homeController.fetchDashboardData();
 
       _showSuccessDialog(code);

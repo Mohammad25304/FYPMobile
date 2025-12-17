@@ -138,9 +138,17 @@ class SendMoneyController extends GetxController {
               walletController.lbpBalance.value;
         }
       }
+      // walletController.addTransaction({
+      //   'title': 'Send Money',
+      //   'amount': amount.value,
+      //   'type': 'debit',
+      //   'currency': selectedCurrency.value,
+      //   'category': 'send', // ✅ IMPORTANT
+      //   'date': DateTime.now().toIso8601String(),
+      // });
 
       // Extra safety – refresh wallet from API
-      await walletController.fetchWalletData();
+      await walletController.refreshAll();
       await homeController.fetchDashboardData();
 
       // Success popup

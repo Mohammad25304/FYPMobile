@@ -1,3 +1,4 @@
+import 'package:cashpilot/Core/Network/TransactionServiceDio.dart';
 import 'package:get/get.dart' hide Response;
 import 'package:dio/dio.dart';
 import 'package:cashpilot/Core/Network/DioClient.dart';
@@ -17,7 +18,7 @@ class WalletController extends GetxController {
   // Selected currency
   RxString selectedCurrency = 'USD'.obs;
 
-  // Stats
+  // Stats (COME FROM BACKEND ONLY ✅)
   RxDouble total_usd_Income = 0.0.obs;
   RxDouble total_eur_Income = 0.0.obs;
   RxDouble total_lbp_Income = 0.0.obs;
@@ -26,7 +27,7 @@ class WalletController extends GetxController {
   RxDouble total_eur_Expenses = 0.0.obs;
   RxDouble total_lbp_Expenses = 0.0.obs;
 
-  // Transaction history
+  // Recent transactions list
   RxList<Map<String, dynamic>> walletTransactions =
       <Map<String, dynamic>>[].obs;
 
@@ -39,7 +40,7 @@ class WalletController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    fetchWalletData();
+    refreshAll(); // ✅ one call loads everything
   }
 
   // ---------------------------------------------------------------------------
@@ -79,7 +80,6 @@ class WalletController extends GetxController {
     }
   }
 
-  // INCOME SELECTION
   double get selectedIncome {
     switch (selectedCurrency.value) {
       case 'EUR':
@@ -91,7 +91,6 @@ class WalletController extends GetxController {
     }
   }
 
-  // EXPENSES SELECTION
   double get selectedExpenses {
     switch (selectedCurrency.value) {
       case 'EUR':
@@ -103,7 +102,6 @@ class WalletController extends GetxController {
     }
   }
 
-  // Symbol for UI formatting
   String get selectedSymbol {
     switch (selectedCurrency.value) {
       case 'EUR':
@@ -123,8 +121,13 @@ class WalletController extends GetxController {
     selectedCurrency.value = code;
   }
 
+  /// ✅ Call this after ANY action (send / exchange / cash pickup / receive)
+  Future<void> refreshAll() async {
+    await fetchWalletData(); // includes balances + stats + recent tx from backend
+  }
+
   // ---------------------------------------------------------------------------
-  // FETCH WALLET DATA
+  // FETCH WALLET DATA (SOURCE OF TRUTH ✅)
   // ---------------------------------------------------------------------------
 
   Future<void> fetchWalletData() async {
@@ -132,7 +135,7 @@ class WalletController extends GetxController {
       isLoading.value = true;
 
       final Response response = await _dio.get('wallet');
-      final data = response.data;
+      final data = response.data ?? {};
 
       // --- Balances ---
       final balances = data['currency_balances'] ?? {};
@@ -143,10 +146,10 @@ class WalletController extends GetxController {
 
       // --- Default currency ---
       if (data['default_currency'] != null) {
-        selectedCurrency.value = data['default_currency'];
+        selectedCurrency.value = data['default_currency'].toString();
       }
 
-      // --- Stats ---
+      // --- Stats (income/expenses) ---
       final stats = data['stats'] ?? {};
       final income = stats['income'] ?? {};
       final expenses = stats['expenses'] ?? {};
@@ -162,17 +165,21 @@ class WalletController extends GetxController {
       total_lbp_Expenses.value =
           double.tryParse('${expenses['LBP'] ?? 0}') ?? 0.0;
 
-      // --- Transactions ---
-      final txList = data['transactions'] as List<dynamic>? ?? [];
+      // --- Recent Transactions ---
+      final List<dynamic> txList =
+          (data['transactions'] ?? []) as List<dynamic>;
 
       walletTransactions.assignAll(
-        txList.map((t) {
+        txList.map<Map<String, dynamic>>((t) {
           return {
+            'id': t['id'],
             'title': t['title'] ?? '',
             'amount': double.tryParse('${t['amount'] ?? 0}') ?? 0.0,
-            'type': t['type'] ?? 'debit',
-            'date': t['date'] ?? '',
             'currency': t['currency'] ?? 'USD',
+            'type': t['type'] ?? 'debit',
+            'category': t['category'] ?? 'transfer',
+            'date': t['date'] ?? '',
+            'transacted_at': t['transacted_at'], // keep if backend sends it
           };
         }).toList(),
       );
@@ -194,60 +201,33 @@ class WalletController extends GetxController {
   }
 
   // ---------------------------------------------------------------------------
-  // LOCAL UPDATE AFTER SEND / RECEIVE
+  // OPTIONAL: FETCH TRANSACTIONS ONLY
+  // ---------------------------------------------------------------------------
+  // Use this ONLY if you have a separate endpoint for transactions.
+  // But DO NOT use it to compute stats.
   // ---------------------------------------------------------------------------
 
-  void applyUpdatedBalances(Map<String, dynamic> balanceMap) {
-    if (balanceMap.containsKey('USD')) {
-      usdBalance.value =
-          double.tryParse('${balanceMap['USD']}') ?? usdBalance.value;
+  Future<void> fetchTransactions() async {
+    try {
+      final response = await TransactionService.fetchTransactions();
+      final List<dynamic> txList = response['transactions'] ?? [];
+
+      walletTransactions.assignAll(
+        txList.map<Map<String, dynamic>>((t) {
+          return {
+            'id': t['id'],
+            'title': t['title'] ?? '',
+            'amount': double.tryParse('${t['amount'] ?? 0}') ?? 0.0,
+            'currency': t['currency'] ?? 'USD',
+            'type': t['type'] ?? 'debit',
+            'category': t['category'] ?? 'transfer',
+            'date': t['transacted_at']?.toString().substring(0, 10) ?? '',
+            'transacted_at': t['transacted_at'],
+          };
+        }).toList(),
+      );
+    } catch (e) {
+      print('❌ fetchTransactions error: $e');
     }
-    if (balanceMap.containsKey('EUR')) {
-      eurBalance.value =
-          double.tryParse('${balanceMap['EUR']}') ?? eurBalance.value;
-    }
-    if (balanceMap.containsKey('LBP')) {
-      lbpBalance.value =
-          double.tryParse('${balanceMap['LBP']}') ?? lbpBalance.value;
-    }
-    fetchWalletData();
-  }
-
-  // ---------------------------------------------------------------------------
-  // ADD TRANSACTION + RECALCULATE
-  // ---------------------------------------------------------------------------
-
-  void addTransaction(Map<String, dynamic> tx) {
-    walletTransactions.insert(0, tx);
-    recalculateStats();
-  }
-
-  void recalculateStats() {
-    double usdIncome = 0, eurIncome = 0, lbpIncome = 0;
-    double usdExpenses = 0, eurExpenses = 0, lbpExpenses = 0;
-
-    for (var tx in walletTransactions) {
-      final amount = tx['amount'] ?? 0.0;
-      final currency = tx['currency'] ?? 'USD';
-      final type = tx['type'];
-
-      if (type == 'credit') {
-        if (currency == 'USD') usdIncome += amount;
-        if (currency == 'EUR') eurIncome += amount;
-        if (currency == 'LBP') lbpIncome += amount;
-      } else if (type == 'debit') {
-        if (currency == 'USD') usdExpenses += amount;
-        if (currency == 'EUR') eurExpenses += amount;
-        if (currency == 'LBP') lbpExpenses += amount;
-      }
-    }
-
-    total_usd_Income.value = usdIncome;
-    total_eur_Income.value = eurIncome;
-    total_lbp_Income.value = lbpIncome;
-
-    total_usd_Expenses.value = usdExpenses;
-    total_eur_Expenses.value = eurExpenses;
-    total_lbp_Expenses.value = lbpExpenses;
   }
 }

@@ -7,8 +7,8 @@ class PaymentController extends GetxController {
 
   RxBool isLoading = false.obs;
 
-  RxList<dynamic> allPayments = <dynamic>[].obs;
-  RxList<dynamic> payments = <dynamic>[].obs;
+  RxList<Map<String, dynamic>> allPayments = <Map<String, dynamic>>[].obs;
+  RxList<Map<String, dynamic>> payments = <Map<String, dynamic>>[].obs;
 
   Rx<DateTime> selectedDate = DateTime.now().obs;
   RxString selectedRangeType = 'day'.obs;
@@ -24,10 +24,24 @@ class PaymentController extends GetxController {
       isLoading.value = true;
 
       final response = await _dio.get("payments");
-      allPayments.assignAll(response.data["payments"] ?? []);
+
+      final List list = response.data["payments"] ?? [];
+
+      allPayments.assignAll(
+        list.map<Map<String, dynamic>>((p) {
+          return {
+            'title': p['title'] ?? 'Transaction',
+            'amount': double.tryParse(p['amount']?.toString() ?? '0') ?? 0.0,
+            'currency': p['currency'] ?? 'USD',
+            'type': p['type'] ?? 'debit',
+            'category': p['category'] ?? 'exchange',
+            'transacted_at': p['transacted_at'],
+          };
+        }).toList(),
+      );
 
       applyFilter();
-    } catch (_) {
+    } catch (e) {
       Get.snackbar("Error", "Failed to load payments");
     } finally {
       isLoading.value = false;
@@ -73,12 +87,12 @@ class PaymentController extends GetxController {
     }
 
     final filtered = allPayments.where((p) {
-      final rawDate = p["transacted_at"];
-      if (rawDate == null) return true; // ✅ never discard
+      final raw = p['transacted_at'];
+      if (raw == null) return true;
 
       try {
-        final dt = DateTime.parse(rawDate);
-        return !dt.isBefore(start) && dt.isBefore(end); // ✅ inclusive start
+        final dt = DateTime.parse(raw.toString());
+        return !dt.isBefore(start) && dt.isBefore(end);
       } catch (_) {
         return true;
       }

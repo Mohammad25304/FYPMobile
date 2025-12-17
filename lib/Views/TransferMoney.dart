@@ -109,7 +109,9 @@ class TransferMoney extends GetView<TransferMoneyController> {
             child: Material(
               color: Colors.transparent,
               child: InkWell(
-                onTap: controller.swapCurrencies,
+                onTap: controller.isTransferring.value
+                    ? null
+                    : controller.swapCurrencies,
                 borderRadius: BorderRadius.circular(30),
                 child: Container(
                   padding: const EdgeInsets.all(12),
@@ -350,56 +352,7 @@ class TransferMoney extends GetView<TransferMoneyController> {
             ),
           ),
           const SizedBox(height: 16),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              _quickAmountButton('50'),
-              _quickAmountButton('100'),
-              _quickAmountButton('500'),
-              _quickAmountButton('All', isAll: true),
-            ],
-          ),
         ],
-      ),
-    );
-  }
-
-  Widget _quickAmountButton(String amount, {bool isAll = false}) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () => isAll
-            ? controller.setAllAmount()
-            : controller.setQuickAmount(amount),
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          decoration: BoxDecoration(
-            color: isAll
-                ? const Color(0xFFFF9800).withOpacity(0.1)
-                : const Color(0xFFF1F5F9),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: isAll ? const Color(0xFFFF9800) : const Color(0xFFE2E8F0),
-              width: isAll ? 1.5 : 1,
-            ),
-          ),
-          child:
-              // ❌ REMOVE Obx — no Rx here, this is static content
-              Text(
-                isAll
-                    ? amount
-                    : '${_getCurrencySymbol(controller.fromCurrency.value)}$amount',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: isAll
-                      ? const Color(0xFFFF9800)
-                      : const Color(0xFF1E88E5),
-                ),
-              ),
-        ),
       ),
     );
   }
@@ -630,9 +583,10 @@ class TransferMoney extends GetView<TransferMoneyController> {
       () => Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: controller.canTransfer
-              ? () => controller.transferMoney()
+          onTap: controller.canTransfer && !controller.isTransferring.value
+              ? controller.transferMoney
               : null,
+
           borderRadius: BorderRadius.circular(18),
           child: Container(
             width: double.infinity,

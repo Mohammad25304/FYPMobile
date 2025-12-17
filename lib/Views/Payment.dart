@@ -15,7 +15,6 @@ class Payment extends GetView<PaymentController> {
   Payment({super.key});
 
   // Register the controller
-  final PaymentController controller = Get.put(PaymentController());
 
   @override
   Widget build(BuildContext context) {
@@ -200,6 +199,19 @@ class Payment extends GetView<PaymentController> {
   // -------------------- PAYMENT CARD --------------------
 
   Widget _buildPaymentCard(BuildContext context, Map item, bool isCredit) {
+    final String category = item['category'] ?? 'exchange';
+
+    String badgeText;
+    if (category == 'exchange') {
+      badgeText = 'Exchanged';
+    } else if (category == 'send') {
+      badgeText = 'Sent';
+    } else if (category == 'receive') {
+      badgeText = 'Received';
+    } else {
+      badgeText = isCredit ? 'Credit' : 'Debit';
+    }
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -215,9 +227,6 @@ class Payment extends GetView<PaymentController> {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: () {
-            // Add tap action if needed
-          },
           borderRadius: BorderRadius.circular(12),
           child: Padding(
             padding: const EdgeInsets.all(16),
@@ -233,7 +242,6 @@ class Payment extends GetView<PaymentController> {
                   child: Icon(
                     isCredit ? Icons.arrow_downward : Icons.arrow_upward,
                     color: isCredit ? Colors.green[600] : Colors.red[600],
-                    size: 24,
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -280,13 +288,13 @@ class Payment extends GetView<PaymentController> {
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(
-                        isCredit ? "Credit" : "Debit",
+                        badgeText,
                         style: TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.w600,
                           color: isCredit
-                              ? Color(0xFF4CAF50)
-                              : Color(0xFFE53935),
+                              ? const Color(0xFF4CAF50)
+                              : const Color(0xFFE53935),
                         ),
                       ),
                     ),
