@@ -1,8 +1,13 @@
 import 'package:get/get.dart';
 import 'package:cashpilot/Model/ContactInfo.dart';
+import 'package:cashpilot/Core/Network/DioClient.dart';
+import 'package:dio/dio.dart' as dio;
 
 class ContactInfoController extends GetxController {
-  var isLoading = false.obs;
+  final dio.Dio _dio = DioClient().getInstance();
+
+  var isLoading = true.obs;
+  var hasError = false.obs;
 
   late ContactInfo contactInfo;
 
@@ -12,19 +17,19 @@ class ContactInfoController extends GetxController {
     fetchContactInfo();
   }
 
-  void fetchContactInfo() async {
-    isLoading.value = true;
+  Future<void> fetchContactInfo() async {
+    try {
+      isLoading.value = true;
+      hasError.value = false;
 
-    // 🔹 TEMP DATA (later from API)
-    await Future.delayed(const Duration(milliseconds: 500));
+      final dio.Response response = await _dio.get('app/contact-info');
 
-    contactInfo = ContactInfo(
-      phone: '+961 81 979 130',
-      email: 'cashpilotinfo@gmail.com',
-      address: 'Beirut, Lebanon',
-      website: 'https://cashpilot.app',
-    );
-
-    isLoading.value = false;
+      contactInfo = ContactInfo.fromJson(response.data['data']);
+    } catch (e) {
+      hasError.value = true;
+      print('❌ Failed to load contact info: $e');
+    } finally {
+      isLoading.value = false;
+    }
   }
 }

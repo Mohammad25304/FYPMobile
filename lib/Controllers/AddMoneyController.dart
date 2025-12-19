@@ -1,43 +1,70 @@
 import 'package:get/get.dart';
-import 'dart:convert';
+import 'package:flutter/material.dart';
+import 'package:dio/dio.dart';
+import 'package:cashpilot/Core/Network/DioClient.dart';
+import 'package:cashpilot/Controllers/WalletController.dart';
+import 'package:cashpilot/Controllers/HomeController.dart';
 
-class AddMoneyController extends GetxController {
-  // Form fields
-  var transactionId = ''.obs;
-  var senderName = ''.obs;
-  var userPhone = ''.obs;
-  var amount = ''.obs;
+class ReceiveCashPickupController extends GetxController {
+  final pickupCodeController = TextEditingController();
+  final receiverPhoneController = TextEditingController();
 
-  // For loader
-  var isLoading = false.obs;
+  final isLoading = false.obs;
 
-  // Handle QR result
-  void handleQrScan(String qrData) {
-    try {
-      final data = jsonDecode(qrData);
+  final Dio _dio = DioClient().getInstance();
+  final WalletController walletController = Get.find();
+  final HomeController homeController = Get.find();
 
-      transactionId.value = data['transaction_id'] ?? '';
-      senderName.value = data['sender_name'] ?? '';
-      amount.value = data['amount'].toString();
-    } catch (e) {
-      Get.snackbar("Invalid QR", "QR format incorrect");
-    }
-  }
+  bool get canReceive =>
+      pickupCodeController.text.trim().isNotEmpty &&
+      receiverPhoneController.text.trim().isNotEmpty &&
+      !isLoading.value;
 
-  // Submit request
-  Future<void> submitAddMoney() async {
-    if (transactionId.isEmpty || senderName.isEmpty || userPhone.isEmpty) {
-      Get.snackbar("Missing info", "Please fill all fields");
-      return;
-    }
+  Future<void> receiveCashPickup() async {
+    if (!canReceive) return;
 
     isLoading.value = true;
 
-    await Future.delayed(const Duration(seconds: 2)); // Simulate API
+    try {
+      final response = await _dio.post(
+        "cash-pickup/receive",
+        data: {
+          "pickup_code": pickupCodeController.text.trim(),
+          "receiver_phone": receiverPhoneController.text.trim(),
+        },
+      );
 
-    isLoading.value = false;
+      final msg = response.data["message"] ?? "Cash received successfully";
 
-    Get.snackbar("Success", "Money added to your wallet");
-    Get.back();
+      await walletController.refreshAll();
+      await homeController.fetchDashboardData();
+
+      Get.snackbar(
+        "Success",
+        msg,
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+      );
+
+      Get.back();
+    } catch (e) {
+      Get.snackbar(
+        "Error",
+        e is DioException
+            ? e.response?.data["message"] ?? "Failed to receive cash"
+            : "Failed to receive cash",
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  @override
+  void onClose() {
+    pickupCodeController.dispose();
+    receiverPhoneController.dispose();
+    super.onClose();
   }
 }
