@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:cashpilot/Controllers/AddMoneyController.dart';
 
-class ReceiveCashPickupPage extends GetView<ReceiveCashPickupController> {
-  const ReceiveCashPickupPage({super.key});
+class AddMoney extends GetView<AddMoneyController> {
+  const AddMoney({super.key});
 
   @override
   Widget build(BuildContext context) {

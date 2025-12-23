@@ -51,7 +51,7 @@ class _QrScanState extends State<QrScan> with SingleTickerProviderStateMixin {
       // Native vibration (no plugin)
       HapticFeedback.mediumImpact();
 
-      controller.handleQrScan(value);
+      // controller.handleQrScan(value);
 
       await scanner.stop();
       await Future.delayed(const Duration(milliseconds: 300));
