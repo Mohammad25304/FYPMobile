@@ -11,7 +11,7 @@ class HomeController extends GetxController {
     currentIndex.value = index;
   }
 
-  var userName = 'Mohammad'.obs;
+  var userName = ''.obs;
   var walletBalance = 0.0.obs;
   var isLoading = false.obs;
   var isBalanceVisible = true.obs;
@@ -59,6 +59,12 @@ class HomeController extends GetxController {
     fetchDashboardData();
   }
 
+  @override
+  void onReady() {
+    super.onReady();
+    fetchDashboardData();
+  }
+
   // Helper to get current balance based on selected currency
   double get currentBalance {
     switch (selectedCurrency.value) {
@@ -103,7 +109,11 @@ class HomeController extends GetxController {
       final data = response.data;
 
       // User info
-      accountStatus.value = data['user']['account_status'] ?? 'pending';
+      // User info
+      final user = data['user'] ?? {};
+
+      userName.value = user['name'] ?? 'User';
+      accountStatus.value = user['account_status'] ?? 'pending';
 
       // Wallet balances
       final wallet = data['wallet'] ?? {};

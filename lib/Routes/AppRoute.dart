@@ -17,4 +17,5 @@ class AppRoute {
   static const String service = '/service';
   static const String sendCashPickup = '/sendCashPickup';
   static const String contactInfo = '/contactInfo';
+  static const String monthlyStats = '/monthlyStats';
 }

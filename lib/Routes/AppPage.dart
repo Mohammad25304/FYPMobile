@@ -5,6 +5,7 @@ import 'package:cashpilot/Bindings/DetailBinding.dart';
 import 'package:cashpilot/Bindings/ForgetPasswordEmailBinding.dart';
 import 'package:cashpilot/Bindings/ForgetPasswordOTPBinding.dart';
 import 'package:cashpilot/Bindings/LoginBinding.dart';
+import 'package:cashpilot/Bindings/MonthlyStatsBinding.dart';
 import 'package:cashpilot/Bindings/OtpVerificationBinding.dart';
 import 'package:cashpilot/Bindings/PaymentBinding.dart';
 import 'package:cashpilot/Bindings/ProfileBinding.dart';
@@ -15,6 +16,7 @@ import 'package:cashpilot/Views/AddMoney.dart';
 import 'package:cashpilot/Views/ContactInfo.dart';
 import 'package:cashpilot/Views/ForgetPassword.dart';
 import 'package:cashpilot/Views/ForgetPasswordOtp.dart';
+import 'package:cashpilot/Views/MonthlyStatsPage.dart';
 import 'package:cashpilot/Views/OtpVerificationPage.dart';
 import 'package:cashpilot/Views/Payment.dart';
 import 'package:cashpilot/Views/Profile.dart';
@@ -138,6 +140,12 @@ class AppPage {
       name: '/contactInfo',
       page: () => const ContactInfoPage(),
       binding: ContactInfoBinding(),
+    ),
+
+    GetPage(
+      name: '/monthlyStats',
+      page: () => const MonthlyStatsPage(),
+      binding: MonthlyStatsBinding(),
     ),
   ];
 }

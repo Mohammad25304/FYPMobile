@@ -1,9 +1,11 @@
+import 'package:cashpilot/Bindings/MonthlyStatsBinding.dart';
 import 'package:cashpilot/Controllers/DetailsController.dart';
 import 'package:cashpilot/Controllers/PaymentController.dart';
 import 'package:cashpilot/Controllers/ProfileController.dart';
 import 'package:cashpilot/Controllers/ServiceController.dart';
 import 'package:cashpilot/Routes/AppRoute.dart';
 import 'package:cashpilot/Views/Details.dart';
+import 'package:cashpilot/Views/MonthlyStatsPage.dart';
 import 'package:cashpilot/Views/Payment.dart';
 import 'package:cashpilot/Views/Profile.dart';
 import 'package:cashpilot/Views/Service.dart';
@@ -145,11 +147,18 @@ class Home extends GetView<HomeController> {
           onTap: (index) {
             switch (index) {
               case 0:
-                //0 is the home page
+                if (Get.isRegistered<HomeController>()) {
+                  Get.find<HomeController>().fetchDashboardData();
+                }
                 break;
+
               case 1:
                 Get.put(WalletController());
-                Get.to(() => Wallet());
+                Get.to(() => Wallet())?.then((_) {
+                  if (Get.isRegistered<HomeController>()) {
+                    Get.find<HomeController>().fetchDashboardData();
+                  }
+                });
                 break;
               case 2:
                 Get.put(PaymentController());
@@ -533,7 +542,11 @@ class Home extends GetView<HomeController> {
                   return;
                 }
 
-                Get.toNamed('/sendMoney');
+                Get.toNamed('/sendMoney')?.then((_) {
+                  if (Get.isRegistered<HomeController>()) {
+                    Get.find<HomeController>().fetchDashboardData();
+                  }
+                });
               },
             ),
             const SizedBox(width: 12),
@@ -551,7 +564,20 @@ class Home extends GetView<HomeController> {
               label: 'Receive',
               color: const Color(0xFF4CAF50),
               onTap: () {
-                Get.toNamed('/addMoney');
+                Get.toNamed('/addMoney')?.then((_) {
+                  if (Get.isRegistered<HomeController>()) {
+                    Get.find<HomeController>().fetchDashboardData();
+                  }
+                });
+              },
+            ),
+            const SizedBox(width: 12),
+            _quickActionButton(
+              icon: Icons.bar_chart_rounded,
+              label: 'Stats',
+              color: const Color(0xFF9C27B0),
+              onTap: () {
+                Get.toNamed('/monthlyStats');
               },
             ),
           ],
@@ -794,7 +820,24 @@ class Home extends GetView<HomeController> {
               final tx = controller.recentTransactions[index];
               final isDebit = (tx['type'] ?? 'debit') == 'debit';
               final amount = double.tryParse(tx['amount'].toString()) ?? 0.0;
+              final currency = tx['currency'] ?? 'USD';
 
+              String symbol;
+              int decimals;
+
+              switch (currency) {
+                case 'EUR':
+                  symbol = '€';
+                  decimals = 2;
+                  break;
+                case 'LBP':
+                  symbol = 'LL';
+                  decimals = 0;
+                  break;
+                default:
+                  symbol = '\$';
+                  decimals = 2;
+              }
               return Container(
                 margin: const EdgeInsets.only(bottom: 10),
                 decoration: BoxDecoration(
@@ -862,7 +905,7 @@ class Home extends GetView<HomeController> {
                           ),
                           Text(
                             (isDebit ? '-' : '+') +
-                                '\$${amount.toStringAsFixed(2)}',
+                                '$symbol${amount.toStringAsFixed(decimals)}',
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w700,
