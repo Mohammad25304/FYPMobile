@@ -1,32 +1,42 @@
+import 'package:cashpilot/Bindings/AboutUsBinding.dart';
 import 'package:cashpilot/Bindings/AddMoneyBinding.dart';
 import 'package:cashpilot/Bindings/CashPickupBinding.dart';
 import 'package:cashpilot/Bindings/ContactInfoBinding.dart';
 import 'package:cashpilot/Bindings/DetailBinding.dart';
 import 'package:cashpilot/Bindings/ForgetPasswordEmailBinding.dart';
 import 'package:cashpilot/Bindings/ForgetPasswordOTPBinding.dart';
+import 'package:cashpilot/Bindings/HelpCenterBinding.dart';
 import 'package:cashpilot/Bindings/LoginBinding.dart';
 import 'package:cashpilot/Bindings/MonthlyStatsBinding.dart';
 import 'package:cashpilot/Bindings/NotificationBinding.dart';
 import 'package:cashpilot/Bindings/OtpVerificationBinding.dart';
 import 'package:cashpilot/Bindings/PaymentBinding.dart';
+import 'package:cashpilot/Bindings/PrivacyBinding.dart';
 import 'package:cashpilot/Bindings/ProfileBinding.dart';
 import 'package:cashpilot/Bindings/SendMoneyBinding.dart';
 import 'package:cashpilot/Bindings/ServiceBinding.dart';
+import 'package:cashpilot/Bindings/SettingsBinding.dart';
+import 'package:cashpilot/Bindings/TermsBinding.dart';
 import 'package:cashpilot/Routes/AppRoute.dart';
+import 'package:cashpilot/Views/AboutUs.dart';
 import 'package:cashpilot/Views/AddMoney.dart';
 import 'package:cashpilot/Views/ContactInfo.dart';
 import 'package:cashpilot/Views/ForgetPassword.dart';
 import 'package:cashpilot/Views/ForgetPasswordOtp.dart';
+import 'package:cashpilot/Views/HelpCenterView.dart';
 import 'package:cashpilot/Views/MonthlyStatsPage.dart';
 import 'package:cashpilot/Views/NotificationsView.dart';
 import 'package:cashpilot/Views/OtpVerificationPage.dart';
 import 'package:cashpilot/Views/Payment.dart';
+import 'package:cashpilot/Views/PrivacyView.dart';
 import 'package:cashpilot/Views/Profile.dart';
 import 'package:cashpilot/Views/QrScan.dart';
 import 'package:cashpilot/Views/ResetPassword.dart';
 import 'package:cashpilot/Views/SendCashPickup.dart';
 import 'package:cashpilot/Views/SendMoney.dart';
 import 'package:cashpilot/Views/Service.dart';
+import 'package:cashpilot/Views/SettingsView.dart';
+import 'package:cashpilot/Views/TermsView.dart';
 import 'package:cashpilot/Views/TransferMoney.dart';
 import 'package:get/get.dart';
 import 'package:cashpilot/Bindings/RegistrationBinding.dart';
@@ -154,6 +164,36 @@ class AppPage {
       name: AppRoute.notification,
       page: () => const NotificationsView(),
       binding: NotificationBinding(),
+    ),
+
+    GetPage(
+      name: '/aboutUs',
+      page: () => const AboutUsView(),
+      binding: AboutUsBinding(),
+    ),
+
+    GetPage(
+      name: '/privacyPolicy',
+      page: () => const PrivacyView(),
+      binding: PrivacyBinding(),
+    ),
+
+    GetPage(
+      name: 'termsAndConditions',
+      page: () => const TermsView(),
+      binding: TermsBinding(),
+    ),
+
+    GetPage(
+      name: '/helpCenter',
+      page: () => const HelpCenterView(),
+      binding: HelpCenterBinding(),
+    ),
+
+    GetPage(
+      name: '/settings',
+      page: () => const SettingsView(),
+      binding: SettingsBinding(),
     ),
   ];
 }

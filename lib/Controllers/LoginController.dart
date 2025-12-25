@@ -75,6 +75,27 @@ class LoginController extends GetxController {
       final response = await _authService.login(formData);
 
       isLoading.value = false;
+
+      // ✅ 1️⃣ Extract token FIRST
+      final token = response.data["token"] ?? response.data["access_token"];
+      final userEmail = email.text;
+
+      if (token == null) {
+        Get.snackbar(
+          "Error",
+          "Token not received from server",
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+        return;
+      }
+
+      // ✅ 2️⃣ SAVE SESSION FIRST (CRITICAL)
+      await SessionManager.saveSession(token: token, email: userEmail);
+
+      debugPrint('✅ Token saved: $token');
+
+      // ✅ 3️⃣ NOW send FCM token (AUTHORIZED)
       await FcmService.sendTokenToBackend();
 
       // SUCCESS
@@ -85,27 +106,10 @@ class LoginController extends GetxController {
         colorText: Colors.white,
       );
 
-      // ✅ SAVE TOKEN AND EMAIL TO STORAGE
-      final token = response.data["token"] ?? response.data["access_token"];
-      final userEmail = email.text;
-
-      if (token != null) {
-        await SessionManager.saveSession(token: token, email: userEmail);
-        debugPrint('✅ Token saved: $token');
-      } else {
-        debugPrint('❌ No token found in response');
-        Get.snackbar(
-          "Error",
-          "Token not received from server",
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-        );
-        return;
-      }
-      // Fetch home dashboard data after successful login
+      // Fetch data
       final homeController = Get.put(HomeController());
       await homeController.fetchDashboardData();
-      // Fetch wallet data after successful login
+
       final walletController = Get.put(WalletController());
       await walletController.fetchWalletData();
 

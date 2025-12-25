@@ -1,16 +1,28 @@
+import 'package:cashpilot/Bindings/AboutUsBinding.dart';
 import 'package:cashpilot/Bindings/ContactInfoBinding.dart';
+import 'package:cashpilot/Bindings/HelpCenterBinding.dart';
+import 'package:cashpilot/Bindings/NotificationBinding.dart';
+import 'package:cashpilot/Bindings/PrivacyBinding.dart';
 import 'package:cashpilot/Bindings/ProfileBinding.dart';
+import 'package:cashpilot/Bindings/SettingsBinding.dart';
+import 'package:cashpilot/Bindings/TermsBinding.dart';
 import 'package:cashpilot/Controllers/HomeController.dart';
 import 'package:cashpilot/Controllers/PaymentController.dart';
 import 'package:cashpilot/Controllers/ServiceController.dart';
 import 'package:cashpilot/Controllers/WalletController.dart';
 import 'package:cashpilot/Controllers/DetailsController.dart';
+import 'package:cashpilot/Views/AboutUs.dart';
 import 'package:cashpilot/Views/ContactInfo.dart';
 import 'package:cashpilot/Views/DetailsView.dart';
+import 'package:cashpilot/Views/HelpCenterView.dart';
 import 'package:cashpilot/Views/Home.dart';
+import 'package:cashpilot/Views/NotificationsView.dart';
 import 'package:cashpilot/Views/Payment.dart';
+import 'package:cashpilot/Views/PrivacyView.dart';
 import 'package:cashpilot/Views/Profile.dart';
 import 'package:cashpilot/Views/Service.dart';
+import 'package:cashpilot/Views/SettingsView.dart';
+import 'package:cashpilot/Views/TermsView.dart';
 import 'package:cashpilot/Views/Wallet.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -71,6 +83,36 @@ class Details extends GetView<DetailsController> {
                           Get.to(
                             () => const ContactInfoPage(),
                             binding: ContactInfoBinding(),
+                          );
+                        } else if (item.keyName == 'notification') {
+                          Get.to(
+                            () => const NotificationsView(),
+                            binding: NotificationBinding(),
+                          );
+                        } else if (item.keyName == 'about_us') {
+                          Get.to(
+                            () => const AboutUsView(),
+                            binding: AboutUsBinding(),
+                          );
+                        } else if (item.keyName == 'terms') {
+                          Get.to(
+                            () => const TermsView(),
+                            binding: TermsBinding(),
+                          );
+                        } else if (item.keyName == 'privacy') {
+                          Get.to(
+                            () => const PrivacyView(),
+                            binding: PrivacyBinding(),
+                          );
+                        } else if (item.keyName == 'help_center') {
+                          Get.to(
+                            () => const HelpCenterView(),
+                            binding: HelpCenterBinding(),
+                          );
+                        } else if (item.keyName == 'settings') {
+                          Get.to(
+                            () => const SettingsView(),
+                            binding: SettingsBinding(),
                           );
                         } else {
                           Get.to(

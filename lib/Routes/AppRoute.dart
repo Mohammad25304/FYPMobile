@@ -19,4 +19,9 @@ class AppRoute {
   static const String contactInfo = '/contactInfo';
   static const String monthlyStats = '/monthlyStats';
   static const String notification = '/notification';
+  static const String aboutUs = '/aboutUs';
+  static const String privacyPolicy = '/privacyPolicy';
+  static const String termsAndConditions = '/termsAndConditions';
+  static const String helpCenter = '/helpCenter';
+  static const String settings = '/settings';
 }
