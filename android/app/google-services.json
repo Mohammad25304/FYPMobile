@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "636130206222",
+    "project_id": "cashpilot-7aeef",
+    "storage_bucket": "cashpilot-7aeef.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:636130206222:android:4460f75fd90c25cee3925f",
+        "android_client_info": {
+          "package_name": "com.example.cashpilot"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDFykHsHp7AYMaMvnZoKNAsQzX4MS5UGu8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -18,4 +18,5 @@ class AppRoute {
   static const String sendCashPickup = '/sendCashPickup';
   static const String contactInfo = '/contactInfo';
   static const String monthlyStats = '/monthlyStats';
+  static const String notification = '/notification';
 }

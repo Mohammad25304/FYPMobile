@@ -3,6 +3,7 @@ import 'package:cashpilot/Controllers/SendMoneyController.dart';
 import 'package:cashpilot/Controllers/WalletController.dart';
 import 'package:cashpilot/Core/Network/DioClient.dart';
 import 'package:cashpilot/Core/Network/auth_service.dart';
+import 'package:cashpilot/Core/Services/FcmService.dart';
 import 'package:cashpilot/Core/Storage/SessionManager.dart'; // Add this import
 import 'package:dio/dio.dart' as dio;
 import 'package:dio/dio.dart';
@@ -74,6 +75,7 @@ class LoginController extends GetxController {
       final response = await _authService.login(formData);
 
       isLoading.value = false;
+      await FcmService.sendTokenToBackend();
 
       // SUCCESS
       Get.snackbar(

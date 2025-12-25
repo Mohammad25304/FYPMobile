@@ -73,7 +73,7 @@ class Home extends GetView<HomeController> {
             ),
             child: IconButton(
               onPressed: () {
-                // TODO: notifications page
+                Get.toNamed('/notification');
               },
               icon: const Icon(
                 Icons.notifications_outlined,
@@ -599,7 +599,7 @@ class Home extends GetView<HomeController> {
           onTap: onTap,
           borderRadius: BorderRadius.circular(16),
           child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 20),
+            padding: const EdgeInsets.symmetric(vertical: 26),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(16),
@@ -614,18 +614,18 @@ class Home extends GetView<HomeController> {
             child: Column(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
                     color: color.withOpacity(0.1),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(icon, color: color, size: 24),
+                  child: Icon(icon, color: color, size: 28),
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 12),
                 Text(
                   label,
                   style: const TextStyle(
-                    fontSize: 13,
+                    fontSize: 14,
                     fontWeight: FontWeight.w600,
                     color: Color(0xFF1E293B),
                   ),
