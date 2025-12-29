@@ -421,12 +421,7 @@ class TermsView extends GetView<TermsController> {
                           const SizedBox(height: 16),
                           ElevatedButton.icon(
                             onPressed: () {
-                              Get.snackbar(
-                                'Contact Legal Team',
-                                'Feature coming soon',
-                                backgroundColor: Colors.white,
-                                colorText: const Color(0xFF0F172A),
-                              );
+                              Get.toNamed('/contactInfo');
                             },
                             icon: const Icon(Icons.email_outlined, size: 18),
                             label: const Text('Get in Touch'),

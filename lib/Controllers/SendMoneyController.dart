@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:dio/dio.dart';
 import 'package:cashpilot/Controllers/WalletController.dart';
 import 'package:cashpilot/Core/Network/DioClient.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class SendMoneyController extends GetxController {
   // Text controllers
@@ -17,6 +18,8 @@ class SendMoneyController extends GetxController {
   // Observables
   var selectedCurrency = 'USD'.obs;
   var amount = 0.0.obs;
+  var recipientEmail = ''.obs;
+
   var isSending = false.obs;
   var lastTransactionId = ''.obs;
   var isSharing = false.obs;
@@ -26,6 +29,28 @@ class SendMoneyController extends GetxController {
 
   // Dio
   final Dio _dio = DioClient().getInstance();
+
+  String _buildReceiptMessage() {
+    return '''
+    CashPilot Transaction Receipt
+
+    Amount: $currencySymbol${amount.value.toStringAsFixed(2)}
+    Currency: ${selectedCurrency.value}
+    To: ${recipientEmailController.text}
+    Date: ${_getCurrentDate()}
+
+    Thank you for using CashPilot 💙
+    ''';
+  }
+
+  String _sanitizePhone(String phone) {
+    return phone
+        .replaceAll('+', '')
+        .replaceAll(' ', '')
+        .replaceAll('-', '')
+        .replaceAll('(', '')
+        .replaceAll(')', '');
+  }
 
   // Get balances from wallet
   double get usdBalance => walletController.usdBalance.value;
@@ -62,12 +87,16 @@ class SendMoneyController extends GetxController {
     final total = amount.value + calculateFee();
     return amount.value > 0 &&
         total <= availableBalance &&
-        recipientEmailController.text.isNotEmpty &&
+        recipientEmail.value.isNotEmpty &&
         !isSending.value;
   }
 
   void selectCurrency(String currency) {
     selectedCurrency.value = currency;
+  }
+
+  void updateRecipientEmail(String value) {
+    recipientEmail.value = value;
   }
 
   void updateAmount(String value) {
@@ -77,6 +106,15 @@ class SendMoneyController extends GetxController {
   void setQuickAmount(String value) {
     amountController.text = value;
     amount.value = double.parse(value);
+  }
+
+  void _shareError(String app) {
+    Get.snackbar(
+      "Unavailable",
+      "$app is not available on this device",
+      backgroundColor: Colors.red,
+      colorText: Colors.white,
+    );
   }
 
   double calculateFee() => amount.value * 0.01;
@@ -177,73 +215,75 @@ class SendMoneyController extends GetxController {
     Get.dialog(
       Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Color(0xFF4CAF50), Color(0xFF45A049)],
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(32),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Color(0xFF4CAF50), Color(0xFF45A049)],
+                    ),
+                    shape: BoxShape.circle,
                   ),
-                  shape: BoxShape.circle,
+                  child: const Icon(
+                    Icons.check_rounded,
+                    color: Colors.white,
+                    size: 48,
+                  ),
                 ),
-                child: const Icon(
-                  Icons.check_rounded,
-                  color: Colors.white,
-                  size: 48,
+                const SizedBox(height: 24),
+
+                const Text(
+                  "Money Sent Successfully!",
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
+                  textAlign: TextAlign.center,
                 ),
-              ),
-              const SizedBox(height: 24),
 
-              const Text(
-                "Money Sent Successfully!",
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
-                textAlign: TextAlign.center,
-              ),
+                const SizedBox(height: 12),
 
-              const SizedBox(height: 12),
-
-              Text(
-                "You sent $currencySymbol${amount.value.toStringAsFixed(2)} to ${recipientNameController.text.isNotEmpty ? recipientNameController.text : recipientEmailController.text}",
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.grey[600]),
-              ),
-
-              const SizedBox(height: 28),
-
-              ElevatedButton(
-                onPressed: () {
-                  Get.back();
-                  _showShareDialog();
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF1E88E5),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+                Text(
+                  "You sent $currencySymbol${amount.value.toStringAsFixed(2)} to ${recipientNameController.text.isNotEmpty ? recipientNameController.text : recipientEmailController.text}",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.grey[600]),
                 ),
-                child: const Text("Share Receipt"),
-              ),
 
-              const SizedBox(height: 12),
+                const SizedBox(height: 28),
 
-              ElevatedButton(
-                onPressed: () {
-                  _clearAllFields();
-                  Get.back(); // close dialog
-                  Get.back(); // back to wallet
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.grey[300],
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+                ElevatedButton(
+                  onPressed: () {
+                    Get.back();
+                    _showShareDialog();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Color(0xFF1E88E5),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                  ),
+                  child: const Text("Share Receipt"),
                 ),
-                child: Text(
-                  "Back to Wallet",
-                  style: TextStyle(color: Colors.grey[700]),
+
+                const SizedBox(height: 12),
+
+                ElevatedButton(
+                  onPressed: () {
+                    _clearAllFields();
+                    Get.back(); // close dialog
+                    Get.back(); // back to wallet
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.grey[300],
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                  ),
+                  child: Text(
+                    "Back to Wallet",
+                    style: TextStyle(color: Colors.grey[700]),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -323,6 +363,7 @@ class SendMoneyController extends GetxController {
     isSharing.value = true;
 
     try {
+      // 1️⃣ Call backend (keep your existing logic)
       final response = await _dio.post(
         "transactions/share",
         data: {
@@ -334,6 +375,57 @@ class SendMoneyController extends GetxController {
 
       debugPrint("🔥 SHARE RESPONSE: ${response.data}");
 
+      // 2️⃣ Build receipt message
+      final message = Uri.encodeComponent('''
+        CashPilot Transaction Receipt
+
+        Amount: $currencySymbol${amount.value.toStringAsFixed(2)}
+        Currency: ${selectedCurrency.value}
+        To: ${recipientEmailController.text}
+        Date: ${_getCurrentDate()}
+
+        Have A Nice Day!!  
+        ''');
+
+      // 3️⃣ EMAIL
+      if (method == "email") {
+        final email = recipientEmailController.text;
+
+        final uri = Uri.parse(
+          "mailto:$email?subject=CashPilot Receipt&body=$message",
+        );
+
+        if (await canLaunchUrl(uri)) {
+          await launchUrl(uri);
+        } else {
+          _shareError("Email");
+        }
+      }
+
+      // 4️⃣ WHATSAPP (FIXED)
+      if (method == "whatsapp") {
+        final rawPhone = recipientPhoneController.text.trim();
+
+        if (rawPhone.isEmpty) {
+          _shareError("WhatsApp phone number");
+          return;
+        }
+
+        final phone = _sanitizePhone(rawPhone);
+
+        final uri = Uri.parse("https://wa.me/$phone?text=$message");
+
+        if (await canLaunchUrl(uri)) {
+          await launchUrl(
+            uri,
+            mode: LaunchMode.externalApplication, // 🔥 REQUIRED
+          );
+        } else {
+          _shareError("WhatsApp");
+        }
+      }
+
+      // 5️⃣ Success feedback
       Get.snackbar(
         "Success",
         "Receipt shared via $method",

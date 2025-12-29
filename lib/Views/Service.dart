@@ -109,12 +109,14 @@ class Service extends GetView<ServiceController> {
               Get.off(() => Wallet());
               break;
             case 2:
-              Get.off(() => Payment());
+              Get.put(PaymentController());
+              Get.to(() => Payment());
               break;
             case 3:
               break;
             case 4:
-              Get.off(() => Details());
+              Get.put(DetailsController());
+              Get.to(() => Details());
               break;
           }
         },

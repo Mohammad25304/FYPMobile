@@ -1,7 +1,11 @@
 // Views/HelpCenterView.dart
+import 'package:cashpilot/Controllers/ChatbotController.dart';
+import 'package:cashpilot/Views/ChatbotView.dart';
+import 'package:cashpilot/Views/ContactInfo.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:cashpilot/Controllers/HelpCenterController.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class HelpCenterView extends GetView<HelpCenterController> {
   const HelpCenterView({super.key});
@@ -235,13 +239,7 @@ class HelpCenterView extends GetView<HelpCenterController> {
                       description: 'Talk to our support team',
                       gradient: const [Color(0xFF10B981), Color(0xFF059669)],
                       onTap: () {
-                        // Add contact support functionality
-                        Get.snackbar(
-                          'Contact Support',
-                          'Feature coming soon',
-                          backgroundColor: Colors.white,
-                          colorText: const Color(0xFF0F172A),
-                        );
+                        Get.to(() => const ContactInfoPage());
                       },
                     ),
                     const SizedBox(height: 12),
@@ -250,14 +248,31 @@ class HelpCenterView extends GetView<HelpCenterController> {
                       title: 'Email Us',
                       description: 'Send us your queries',
                       gradient: const [Color(0xFF3B82F6), Color(0xFF2563EB)],
-                      onTap: () {
-                        // Add email functionality
-                        Get.snackbar(
-                          'Email Us',
-                          'Feature coming soon',
-                          backgroundColor: Colors.white,
-                          colorText: const Color(0xFF0F172A),
+                      onTap: () async {
+                        const supportEmail =
+                            'cashpilotinfo@gmail.com'; // 🔴 change if needed
+                        const subject = 'CashPilot Support';
+                        const body =
+                            'Hello CashPilot Support,\n\nI need help with:\n';
+
+                        final uri = Uri(
+                          scheme: 'mailto',
+                          path: supportEmail,
+                          query: Uri.encodeFull('subject=$subject&body=$body'),
                         );
+
+                        if (await canLaunchUrl(uri)) {
+                          await launchUrl(
+                            uri,
+                            mode: LaunchMode.externalApplication,
+                          );
+                        } else {
+                          Get.snackbar(
+                            'Email Us',
+                            'No email app found',
+                            snackPosition: SnackPosition.BOTTOM,
+                          );
+                        }
                       },
                     ),
                     const SizedBox(height: 12),
@@ -267,13 +282,10 @@ class HelpCenterView extends GetView<HelpCenterController> {
                       description: 'Browse common questions',
                       gradient: const [Color(0xFF8B5CF6), Color(0xFF7C3AED)],
                       onTap: () {
-                        // Add FAQs navigation
-                        Get.snackbar(
-                          'FAQs',
-                          'Feature coming soon',
-                          backgroundColor: Colors.white,
-                          colorText: const Color(0xFF0F172A),
-                        );
+                        if (!Get.isRegistered<ChatbotController>()) {
+                          Get.put(ChatbotController());
+                        }
+                        Get.to(() => ChatbotView());
                       },
                     ),
                     const SizedBox(height: 12),
@@ -282,14 +294,24 @@ class HelpCenterView extends GetView<HelpCenterController> {
                       title: 'Live Chat',
                       description: 'Chat with us in real-time',
                       gradient: const [Color(0xFFF59E0B), Color(0xFFD97706)],
-                      onTap: () {
-                        // Add live chat functionality
-                        Get.snackbar(
-                          'Live Chat',
-                          'Feature coming soon',
-                          backgroundColor: Colors.white,
-                          colorText: const Color(0xFF0F172A),
-                        );
+                      onTap: () async {
+                        const supportPhone =
+                            '+96181979130'; // 🔴 PUT YOUR SUPPORT NUMBER HERE
+                        final cleanNumber = supportPhone.replaceAll('+', '');
+                        final uri = Uri.parse('https://wa.me/$cleanNumber');
+
+                        if (await canLaunchUrl(uri)) {
+                          await launchUrl(
+                            uri,
+                            mode: LaunchMode.externalApplication,
+                          );
+                        } else {
+                          Get.snackbar(
+                            'Live Chat',
+                            'WhatsApp is not installed',
+                            snackPosition: SnackPosition.BOTTOM,
+                          );
+                        }
                       },
                     ),
                     const SizedBox(height: 40),

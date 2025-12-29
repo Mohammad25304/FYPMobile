@@ -241,7 +241,9 @@ class SendMoney extends GetView<SendMoneyController> {
             controller.recipientEmailController,
             "Recipient Email",
             Icons.email_outlined,
+            onChanged: controller.updateRecipientEmail,
           ),
+
           const SizedBox(height: 12),
 
           _inputField(
@@ -452,10 +454,12 @@ class SendMoney extends GetView<SendMoneyController> {
     String hint,
     IconData icon, {
     TextInputType keyboard = TextInputType.text,
+    Function(String)? onChanged, // ✅ ADD THIS
   }) {
     return TextField(
       controller: c,
       keyboardType: keyboard,
+      onChanged: onChanged, // ✅ ADD THIS
       decoration: _inputDecoration(
         hint,
       ).copyWith(prefixIcon: Icon(icon, color: const Color(0xFF1E88E5))),

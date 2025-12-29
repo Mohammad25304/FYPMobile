@@ -24,4 +24,10 @@ class AppRoute {
   static const String termsAndConditions = '/termsAndConditions';
   static const String helpCenter = '/helpCenter';
   static const String settings = '/settings';
+  static const String chatbot = '/chatbot';
+  static const String payTelecom = '/payTelecom';
+  static const String payInternet = '/payInternet';
+  static const String managedAccounts = '/managedAccounts';
+  static const String child = '/child';
+  static const String payRequests = '/payRequests';
 }

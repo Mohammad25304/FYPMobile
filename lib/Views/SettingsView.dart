@@ -2,6 +2,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:cashpilot/Controllers/SettingsController.dart';
+import 'package:cashpilot/Controllers/ProfileController.dart';
+import 'package:cashpilot/Controllers/HomeController.dart';
+
+final ProfileController profileController = Get.put(ProfileController());
+final HomeController homeController = Get.find<HomeController>();
 
 class SettingsView extends GetView<SettingsController> {
   const SettingsView({super.key});
@@ -202,15 +207,9 @@ class SettingsView extends GetView<SettingsController> {
                     title: 'Change Password',
                     subtitle: 'Update your password',
                     gradient: const [Color(0xFF3B82F6), Color(0xFF2563EB)],
-                    onTap: () {
-                      Get.snackbar(
-                        'Change Password',
-                        'Feature coming soon',
-                        backgroundColor: Colors.white,
-                        colorText: const Color(0xFF0F172A),
-                      );
-                    },
+                    onTap: _showChangePasswordSheet,
                   ),
+
                   const SizedBox(height: 12),
                   _buildActionTile(
                     icon: Icons.email_outlined,
@@ -286,7 +285,7 @@ class SettingsView extends GetView<SettingsController> {
                             ElevatedButton(
                               onPressed: () {
                                 Get.back();
-                                controller.logout();
+                                homeController.logout();
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFFEF4444),
@@ -595,6 +594,104 @@ class SettingsView extends GetView<SettingsController> {
           ],
         ),
       ),
+    );
+  }
+
+  void _showChangePasswordSheet() {
+    final currentCtrl = TextEditingController();
+    final newCtrl = TextEditingController();
+    final confirmCtrl = TextEditingController();
+
+    Get.bottomSheet(
+      Container(
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
+        ),
+        child: Obx(
+          () => Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE2E8F0),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+              ),
+              const Text(
+                'Change Password',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+              ),
+              const SizedBox(height: 16),
+
+              TextField(
+                controller: currentCtrl,
+                obscureText: true,
+                decoration: const InputDecoration(
+                  labelText: 'Current Password',
+                ),
+              ),
+              const SizedBox(height: 10),
+
+              TextField(
+                controller: newCtrl,
+                obscureText: true,
+                decoration: const InputDecoration(labelText: 'New Password'),
+              ),
+              const SizedBox(height: 10),
+
+              TextField(
+                controller: confirmCtrl,
+                obscureText: true,
+                decoration: const InputDecoration(
+                  labelText: 'Confirm New Password',
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: profileController.isChangingPassword.value
+                      ? null
+                      : () {
+                          profileController.changePassword(
+                            currentPassword: currentCtrl.text,
+                            newPassword: newCtrl.text,
+                            confirmPassword: confirmCtrl.text,
+                          );
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF1E88E5),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  child: profileController.isChangingPassword.value
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Text(
+                          'Update Password',
+                          style: TextStyle(fontWeight: FontWeight.w700),
+                        ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      isScrollControlled: true,
     );
   }
 }

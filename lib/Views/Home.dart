@@ -1,9 +1,11 @@
 import 'package:cashpilot/Bindings/MonthlyStatsBinding.dart';
+import 'package:cashpilot/Controllers/ChatbotController.dart';
 import 'package:cashpilot/Controllers/DetailsController.dart';
 import 'package:cashpilot/Controllers/PaymentController.dart';
 import 'package:cashpilot/Controllers/ProfileController.dart';
 import 'package:cashpilot/Controllers/ServiceController.dart';
 import 'package:cashpilot/Routes/AppRoute.dart';
+import 'package:cashpilot/Views/ChatbotView.dart';
 import 'package:cashpilot/Views/Details.dart';
 import 'package:cashpilot/Views/MonthlyStatsPage.dart';
 import 'package:cashpilot/Views/Payment.dart';
@@ -331,7 +333,7 @@ class Home extends GetView<HomeController> {
                       child: Row(
                         children: [
                           const Icon(
-                            Icons.arrow_upward_rounded,
+                            Icons.arrow_downward_rounded,
                             color: Colors.white,
                             size: 18,
                           ),
@@ -382,7 +384,7 @@ class Home extends GetView<HomeController> {
                       child: Row(
                         children: [
                           const Icon(
-                            Icons.arrow_downward_rounded,
+                            Icons.arrow_upward_rounded,
                             color: Colors.white,
                             size: 18,
                           ),
@@ -654,7 +656,9 @@ class Home extends GetView<HomeController> {
               ),
             ),
             TextButton(
-              onPressed: () {},
+              onPressed: () {
+                Get.toNamed('/service');
+              },
               child: const Text(
                 'See All',
                 style: TextStyle(
@@ -769,7 +773,7 @@ class Home extends GetView<HomeController> {
             ),
             TextButton(
               onPressed: () {
-                Get.to(Payment());
+                Get.toNamed('/payment');
               },
               child: const Text(
                 'View All',
@@ -818,8 +822,12 @@ class Home extends GetView<HomeController> {
             itemCount: controller.recentTransactions.length,
             itemBuilder: (context, index) {
               final tx = controller.recentTransactions[index];
-              final isDebit = (tx['type'] ?? 'debit') == 'debit';
-              final amount = double.tryParse(tx['amount'].toString()) ?? 0.0;
+
+              // ✅ SINGLE SOURCE OF TRUTH
+              final double amount =
+                  double.tryParse(tx['amount'].toString()) ?? 0.0;
+              final bool isDebit = amount < 0;
+
               final currency = tx['currency'] ?? 'USD';
 
               String symbol;
@@ -838,6 +846,7 @@ class Home extends GetView<HomeController> {
                   symbol = '\$';
                   decimals = 2;
               }
+
               return Container(
                 margin: const EdgeInsets.only(bottom: 10),
                 decoration: BoxDecoration(
@@ -854,7 +863,6 @@ class Home extends GetView<HomeController> {
                 child: Material(
                   color: Colors.transparent,
                   child: InkWell(
-                    onTap: () {},
                     borderRadius: BorderRadius.circular(16),
                     child: Padding(
                       padding: const EdgeInsets.all(16),
@@ -870,8 +878,9 @@ class Home extends GetView<HomeController> {
                             ),
                             child: Icon(
                               isDebit
-                                  ? Icons.arrow_upward_rounded
-                                  : Icons.arrow_downward_rounded,
+                                  ? Icons
+                                        .arrow_upward_rounded // money out
+                                  : Icons.arrow_downward_rounded, // money in
                               color: isDebit
                                   ? const Color(0xFFE53935)
                                   : const Color(0xFF43A047),
@@ -904,8 +913,7 @@ class Home extends GetView<HomeController> {
                             ),
                           ),
                           Text(
-                            (isDebit ? '-' : '+') +
-                                '$symbol${amount.toStringAsFixed(decimals)}',
+                            '$symbol${amount.abs().toStringAsFixed(decimals)}',
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w700,

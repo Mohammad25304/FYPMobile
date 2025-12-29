@@ -24,7 +24,6 @@ class PaymentController extends GetxController {
       isLoading.value = true;
 
       final response = await _dio.get("payments");
-
       final List list = response.data["payments"] ?? [];
 
       allPayments.assignAll(
@@ -33,8 +32,14 @@ class PaymentController extends GetxController {
             'title': p['title'] ?? 'Transaction',
             'amount': double.tryParse(p['amount']?.toString() ?? '0') ?? 0.0,
             'currency': p['currency'] ?? 'USD',
-            'type': p['type'] ?? 'debit',
-            'category': p['category'] ?? 'exchange',
+
+            // 🔑 KEEP THESE
+            'direction': p['direction'], // sent | received
+            'from': p['from'],
+            'to': p['to'],
+
+            'type': p['type'], // optional
+            'category': p['category'],
             'transacted_at': p['transacted_at'],
           };
         }).toList(),

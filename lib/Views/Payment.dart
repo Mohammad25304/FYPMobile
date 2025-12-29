@@ -46,11 +46,12 @@ class Payment extends GetView<PaymentController> {
                       itemCount: controller.payments.length,
                       itemBuilder: (context, index) {
                         final item = controller.payments[index];
-                        final bool isCredit = item["type"] == "credit";
+                        final bool isSent = item['direction'] == 'sent';
+                        final bool isReceived = item['direction'] == 'received';
 
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 12),
-                          child: _buildPaymentCard(context, item, isCredit),
+                          child: _buildPaymentCard(context, item),
                         );
                       },
                     ),
@@ -198,19 +199,20 @@ class Payment extends GetView<PaymentController> {
 
   // -------------------- PAYMENT CARD --------------------
 
-  Widget _buildPaymentCard(BuildContext context, Map item, bool isCredit) {
-    final String category = item['category'] ?? 'exchange';
+  Widget _buildPaymentCard(BuildContext context, Map item) {
+    final bool isSent = item['direction'] == 'sent';
+    final bool isReceived = item['direction'] == 'received';
 
-    String badgeText;
-    if (category == 'exchange') {
-      badgeText = 'Exchanged';
-    } else if (category == 'send') {
-      badgeText = 'Sent';
-    } else if (category == 'receive') {
-      badgeText = 'Received';
-    } else {
-      badgeText = isCredit ? 'Credit' : 'Debit';
-    }
+    final String title = isSent
+        ? "Sent to ${item['to'] ?? 'User'}"
+        : "Received from ${item['from'] ?? 'User'}";
+
+    final String badgeText = isSent ? 'Sent' : 'Received';
+
+    final Color mainColor = isSent ? Colors.red : Colors.green;
+    final IconData icon = isSent
+        ? Icons.arrow_upward_rounded
+        : Icons.arrow_downward_rounded;
 
     return Container(
       decoration: BoxDecoration(
@@ -224,85 +226,80 @@ class Payment extends GetView<PaymentController> {
           ),
         ],
       ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(12),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            // ICON
+            Container(
+              width: 50,
+              height: 50,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: mainColor.withOpacity(0.1),
+              ),
+              child: Icon(icon, color: mainColor),
+            ),
+
+            const SizedBox(width: 16),
+
+            // TITLE + DATE
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    DateFormat(
+                      'yyyy-MM-dd',
+                    ).format(DateTime.parse(item["transacted_at"])),
+                    style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                  ),
+                ],
+              ),
+            ),
+
+            // AMOUNT + BADGE
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
+                Text(
+                  "${isSent ? '-' : '+'}${item["currency"]} ${item["amount"].toStringAsFixed(2)}",
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                    color: mainColor,
+                  ),
+                ),
+                const SizedBox(height: 4),
                 Container(
-                  width: 50,
-                  height: 50,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: isCredit ? Colors.green[50] : Colors.red[50],
+                    color: mainColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(4),
                   ),
-                  child: Icon(
-                    isCredit ? Icons.arrow_downward : Icons.arrow_upward,
-                    color: isCredit ? Colors.green[600] : Colors.red[600],
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        item["title"] ?? "Transaction",
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 14,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        DateFormat(
-                          'yyyy-MM-dd',
-                        ).format(DateTime.parse(item["transacted_at"])),
-                        style: TextStyle(color: Colors.grey[600], fontSize: 12),
-                      ),
-                    ],
-                  ),
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      "${item["currency"]} ${item["amount"].toStringAsFixed(2)}",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                        color: isCredit ? Colors.green[600] : Colors.red[600],
-                      ),
+                  child: Text(
+                    badgeText,
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      color: mainColor,
                     ),
-                    const SizedBox(height: 4),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: isCredit ? Colors.green[100] : Colors.red[100],
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        badgeText,
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600,
-                          color: isCredit
-                              ? const Color(0xFF4CAF50)
-                              : const Color(0xFFE53935),
-                        ),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ],
             ),
-          ),
+          ],
         ),
       ),
     );
@@ -339,7 +336,7 @@ class Payment extends GetView<PaymentController> {
               break;
             case 1:
               Get.put(WalletController());
-              Get.off(() => Wallet());
+              Get.to(() => Wallet());
               break;
             case 2:
               break;

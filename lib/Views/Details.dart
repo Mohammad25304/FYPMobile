@@ -1,4 +1,5 @@
 import 'package:cashpilot/Bindings/AboutUsBinding.dart';
+import 'package:cashpilot/Bindings/ChatbotBinding.dart';
 import 'package:cashpilot/Bindings/ContactInfoBinding.dart';
 import 'package:cashpilot/Bindings/HelpCenterBinding.dart';
 import 'package:cashpilot/Bindings/NotificationBinding.dart';
@@ -12,6 +13,7 @@ import 'package:cashpilot/Controllers/ServiceController.dart';
 import 'package:cashpilot/Controllers/WalletController.dart';
 import 'package:cashpilot/Controllers/DetailsController.dart';
 import 'package:cashpilot/Views/AboutUs.dart';
+import 'package:cashpilot/Views/ChatbotView.dart';
 import 'package:cashpilot/Views/ContactInfo.dart';
 import 'package:cashpilot/Views/DetailsView.dart';
 import 'package:cashpilot/Views/HelpCenterView.dart';
@@ -59,6 +61,24 @@ class Details extends GetView<DetailsController> {
                       break;
                     case 'about_us':
                       icon = Icons.info_rounded;
+                      break;
+                    case 'terms':
+                      icon = Icons.article_rounded;
+                      break;
+                    case 'privacy':
+                      icon = Icons.lock_rounded;
+                      break;
+                    case 'chatbot':
+                      icon = Icons.smart_toy_rounded;
+                      break;
+                    case 'contact':
+                      icon = Icons.contact_phone_rounded;
+                      break;
+                    case 'help_center':
+                      icon = Icons.help_center_rounded;
+                      break;
+                    case 'settings':
+                      icon = Icons.settings_rounded;
                       break;
                   }
 
@@ -113,6 +133,11 @@ class Details extends GetView<DetailsController> {
                           Get.to(
                             () => const SettingsView(),
                             binding: SettingsBinding(),
+                          );
+                        } else if (item.keyName == 'chatbot') {
+                          Get.to(
+                            () => ChatbotView(),
+                            binding: ChatbotBinding(),
                           );
                         } else {
                           Get.to(
