@@ -1,16 +1,10 @@
-import 'package:cashpilot/Bindings/MonthlyStatsBinding.dart';
-import 'package:cashpilot/Controllers/ChatbotController.dart';
 import 'package:cashpilot/Controllers/DetailsController.dart';
 import 'package:cashpilot/Controllers/PaymentController.dart';
 import 'package:cashpilot/Controllers/ProfileController.dart';
-import 'package:cashpilot/Controllers/ServiceController.dart';
 import 'package:cashpilot/Routes/AppRoute.dart';
-import 'package:cashpilot/Views/ChatbotView.dart';
 import 'package:cashpilot/Views/Details.dart';
-import 'package:cashpilot/Views/MonthlyStatsPage.dart';
 import 'package:cashpilot/Views/Payment.dart';
 import 'package:cashpilot/Views/Profile.dart';
-import 'package:cashpilot/Views/Service.dart';
 import 'package:cashpilot/Views/Wallet.dart';
 import 'package:cashpilot/Controllers/WalletController.dart';
 import 'package:flutter/material.dart';
@@ -757,181 +751,131 @@ class Home extends GetView<HomeController> {
   }
 
   Widget _buildRecentTransactions() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text(
-              'Recent Transactions',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: Color(0xFF1E293B),
-              ),
-            ),
-            TextButton(
-              onPressed: () {
-                Get.toNamed('/payment');
-              },
-              child: const Text(
-                'View All',
+    return Obx(() {
+      if (controller.recentTransactions.isEmpty) {
+        return const SizedBox.shrink();
+      }
+
+      final txs = controller.recentTransactions.take(3).toList();
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Recent Transactions',
                 style: TextStyle(
-                  color: Color(0xFF1E88E5),
-                  fontWeight: FontWeight.w600,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF1E293B),
                 ),
               ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        Obx(() {
-          if (controller.recentTransactions.isEmpty) {
-            return Container(
-              padding: const EdgeInsets.all(40),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Center(
-                child: Column(
-                  children: [
-                    Icon(
-                      Icons.receipt_long_outlined,
-                      size: 48,
-                      color: Colors.grey[300],
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      'No recent transactions',
-                      style: TextStyle(
-                        color: Colors.grey[500],
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          }
-          return ListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: controller.recentTransactions.length,
-            itemBuilder: (context, index) {
-              final tx = controller.recentTransactions[index];
-
-              // ✅ SINGLE SOURCE OF TRUTH
-              final double amount =
-                  double.tryParse(tx['amount'].toString()) ?? 0.0;
-              final bool isDebit = amount < 0;
-
-              final currency = tx['currency'] ?? 'USD';
-
-              String symbol;
-              int decimals;
-
-              switch (currency) {
-                case 'EUR':
-                  symbol = '€';
-                  decimals = 2;
-                  break;
-                case 'LBP':
-                  symbol = 'LL';
-                  decimals = 0;
-                  break;
-                default:
-                  symbol = '\$';
-                  decimals = 2;
-              }
-
-              return Container(
-                margin: const EdgeInsets.only(bottom: 10),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.04),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(16),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: isDebit
-                                  ? const Color(0xFFFFEBEE)
-                                  : const Color(0xFFE8F5E9),
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              isDebit
-                                  ? Icons
-                                        .arrow_upward_rounded // money out
-                                  : Icons.arrow_downward_rounded, // money in
-                              color: isDebit
-                                  ? const Color(0xFFE53935)
-                                  : const Color(0xFF43A047),
-                              size: 20,
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  tx['title'] ?? 'Transaction',
-                                  style: const TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w600,
-                                    color: Color(0xFF1E293B),
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  tx['date'] ?? '',
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    color: Colors.grey[500],
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Text(
-                            '$symbol${amount.abs().toStringAsFixed(decimals)}',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                              color: isDebit
-                                  ? const Color(0xFFE53935)
-                                  : const Color(0xFF43A047),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+              TextButton(
+                onPressed: () {
+                  Get.toNamed('/payment');
+                },
+                child: const Text(
+                  'View All',
+                  style: TextStyle(
+                    color: Color(0xFF1E88E5),
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
-              );
-            },
-          );
-        }),
-      ],
-    );
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+
+          // Transactions preview
+          ...txs.map((tx) {
+            final double amount =
+                double.tryParse(tx['amount'].toString()) ?? 0.0;
+            final bool isDebit = amount < 0;
+            final String currency = tx['currency'] ?? 'USD';
+
+            final symbol = currency == 'USD'
+                ? '\$'
+                : currency == 'EUR'
+                ? '€'
+                : 'LL';
+
+            return Container(
+              margin: const EdgeInsets.only(bottom: 10),
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.04),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: isDebit
+                          ? const Color(0xFFFFEBEE)
+                          : const Color(0xFFE8F5E9),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      isDebit
+                          ? Icons.arrow_upward_rounded
+                          : Icons.arrow_downward_rounded,
+                      color: isDebit
+                          ? const Color(0xFFE53935)
+                          : const Color(0xFF43A047),
+                      size: 18,
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          tx['title'] ?? 'Transaction',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF1E293B),
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          tx['date'] ?? '',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[500],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Text(
+                    '$symbol${amount.abs().toStringAsFixed(currency == "LBP" ? 0 : 2)}',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: isDebit
+                          ? const Color(0xFFE53935)
+                          : const Color(0xFF43A047),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }).toList(),
+        ],
+      );
+    });
   }
 }

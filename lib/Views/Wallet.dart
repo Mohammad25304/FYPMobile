@@ -13,7 +13,8 @@ import 'package:cashpilot/Views/SendCashPickup.dart';
 import 'package:cashpilot/Bindings/CashPickupBinding.dart';
 
 class Wallet extends GetView<WalletController> {
-  const Wallet({super.key});
+  Wallet({super.key});
+  final RxMap<String, bool> expandedDays = <String, bool>{}.obs;
 
   @override
   Widget build(BuildContext context) {
@@ -620,255 +621,350 @@ class Wallet extends GetView<WalletController> {
   }
 
   Widget _recentTransactions() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text(
-              'Recent Transactions',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: Color(0xFF1E293B),
-              ),
-            ),
-            TextButton(
-              onPressed: () {
-                Get.to(() => Payment())?.then((_) => controller.refreshAll());
-              },
-              child: const Text(
-                'View All',
+    return Obx(() {
+      if (controller.walletTransactions.isEmpty) {
+        return const SizedBox.shrink();
+      }
+
+      // 🔒 LIMIT TO 5 TRANSACTIONS
+      final limitedTx = controller.walletTransactions.take(5).toList();
+
+      final groupedTx = groupByDay(limitedTx);
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Recent Transactions',
                 style: TextStyle(
-                  color: Color(0xFF1E88E5),
-                  fontWeight: FontWeight.w600,
-                  fontSize: 14,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF1E293B),
                 ),
               ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        Obx(() {
-          if (controller.walletTransactions.isEmpty) {
-            return Container(
-              padding: const EdgeInsets.all(50),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.04),
-                    blurRadius: 15,
-                    offset: const Offset(0, 4),
+              TextButton(
+                onPressed: () {
+                  Get.to(() => Payment())?.then((_) => controller.refreshAll());
+                },
+                child: const Text(
+                  'View All',
+                  style: TextStyle(
+                    color: Color(0xFF1E88E5),
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
                   ),
-                ],
-              ),
-              child: Center(
-                child: Column(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF1F5F9),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        Icons.receipt_long_outlined,
-                        size: 48,
-                        color: Colors.grey[400],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'No transactions yet',
-                      style: TextStyle(
-                        color: Colors.grey[600],
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      'Your transaction history will appear here',
-                      style: TextStyle(
-                        color: Colors.grey[400],
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
                 ),
               ),
-            );
-          }
+            ],
+          ),
+          const SizedBox(height: 16),
 
-          return ListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: controller.walletTransactions.length,
-            itemBuilder: (context, index) {
-              final tx = controller.walletTransactions[index];
+          // Grouped + collapsible
+          ...groupedTx.entries.map((entry) {
+            final isExpanded = expandedDays[entry.key] ?? true;
 
-              // ✅ IMPORTANT: DO NOT HIDE exchange credit anymore
-              // This was the reason income never appeared.
-
-              final bool isDebit = tx["type"] == "debit";
-              final double amount =
-                  double.tryParse(tx["amount"].toString()) ?? 0.0;
-              final String currency = tx["currency"] ?? "USD";
-
-              final String category = tx['category'] ?? 'transfer';
-
-              String badgeText;
-              if (category == 'exchange') {
-                badgeText = 'Exchanged';
-              } else if (category == 'send') {
-                badgeText = 'Sent';
-              } else if (category == 'receive') {
-                badgeText = 'Received';
-              } else {
-                badgeText = isDebit ? 'Sent' : 'Received';
-              }
-
-              return Container(
-                margin: const EdgeInsets.only(bottom: 12),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(18),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.04),
-                      blurRadius: 15,
-                      offset: const Offset(0, 4),
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 🔽 DAY HEADER (CLICKABLE)
+                InkWell(
+                  onTap: () {
+                    expandedDays[entry.key] = !isExpanded;
+                  },
+                  borderRadius: BorderRadius.circular(12),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 10,
+                      horizontal: 4,
                     ),
-                  ],
-                ),
-                child: Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    onTap: () {},
-                    borderRadius: BorderRadius.circular(18),
-                    child: Padding(
-                      padding: const EdgeInsets.all(18),
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(14),
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: isDebit
-                                    ? [
-                                        const Color(
-                                          0xFFFF6B6B,
-                                        ).withOpacity(0.1),
-                                        const Color(
-                                          0xFFFF6B6B,
-                                        ).withOpacity(0.05),
-                                      ]
-                                    : [
-                                        const Color(
-                                          0xFF4CAF50,
-                                        ).withOpacity(0.1),
-                                        const Color(
-                                          0xFF4CAF50,
-                                        ).withOpacity(0.05),
-                                      ],
-                              ),
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              isDebit
-                                  ? Icons.arrow_upward_rounded
-                                  : Icons.arrow_downward_rounded,
-                              color: isDebit
-                                  ? const Color(0xFFFF6B6B)
-                                  : const Color(0xFF4CAF50),
-                              size: 22,
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  tx["title"] ?? "Transaction",
-                                  style: const TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w700,
-                                    color: Color(0xFF1E293B),
-                                  ),
-                                ),
-                                const SizedBox(height: 5),
-                                Text(
-                                  tx["date"] ?? "",
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    color: Colors.grey[500],
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Row(
                             children: [
-                              Text(
-                                (isDebit ? "-" : "+") +
-                                    "${currency == "USD"
-                                            ? "\$"
-                                            : currency == "EUR"
-                                            ? "€"
-                                            : "LL"}"
-                                        "${amount.toStringAsFixed(currency == "LBP" ? 0 : 2)}",
-                                style: TextStyle(
-                                  fontSize: 17,
-                                  fontWeight: FontWeight.w800,
-                                  color: isDebit
-                                      ? const Color(0xFFFF6B6B)
-                                      : const Color(0xFF4CAF50),
+                              Container(
+                                width: 3,
+                                height: 18,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF1E88E5),
+                                  borderRadius: BorderRadius.circular(2),
                                 ),
                               ),
-                              const SizedBox(height: 4),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 3,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: isDebit
-                                      ? const Color(0xFFFF6B6B).withOpacity(0.1)
-                                      : const Color(
-                                          0xFF4CAF50,
-                                        ).withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Text(
-                                  badgeText,
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w700,
-                                    color: isDebit
-                                        ? const Color(0xFFFF6B6B)
-                                        : const Color(0xFF4CAF50),
-                                  ),
+                              const SizedBox(width: 10),
+                              Text(
+                                entry.key,
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700,
+                                  color: Color(0xFF64748B),
+                                  letterSpacing: 0.3,
                                 ),
                               ),
                             ],
                           ),
-                        ],
-                      ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: Colors.grey[100],
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            isExpanded ? Icons.expand_less : Icons.expand_more,
+                            color: const Color(0xFF64748B),
+                            size: 20,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
-              );
-            },
-          );
-        }),
-      ],
-    );
+
+                // 🔹 TRANSACTIONS (COLLAPSIBLE)
+                if (isExpanded)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4, left: 16),
+                    child: Column(
+                      children: entry.value.map((tx) {
+                        final bool isDebit = tx['type'] == 'debit';
+                        final double amount =
+                            double.tryParse(tx['amount'].toString()) ?? 0.0;
+                        final String currency = tx['currency'] ?? 'USD';
+
+                        final symbol = currency == 'USD'
+                            ? '\$'
+                            : currency == 'EUR'
+                            ? '€'
+                            : 'LL';
+
+                        final categoryIcon = _getCategoryIcon(
+                          tx['category'] ?? 'transfer',
+                        );
+                        final categoryColor = _getCategoryColor(
+                          tx['category'] ?? 'transfer',
+                        );
+
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              onTap: () {
+                                // Optional: Show transaction details
+                              },
+                              borderRadius: BorderRadius.circular(14),
+                              child: Container(
+                                padding: const EdgeInsets.all(14),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(14),
+                                  border: Border.all(
+                                    color: Colors.grey[100]!,
+                                    width: 1,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.03),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: Row(
+                                  children: [
+                                    // Icon with category color background
+                                    Container(
+                                      width: 44,
+                                      height: 44,
+                                      decoration: BoxDecoration(
+                                        color: categoryColor.withOpacity(0.12),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Center(
+                                        child: Icon(
+                                          categoryIcon,
+                                          color: categoryColor,
+                                          size: 22,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 14),
+
+                                    // Title & Category
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            tx['title'] ?? 'Transaction',
+                                            style: const TextStyle(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w600,
+                                              color: Color(0xFF1E293B),
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          const SizedBox(height: 3),
+                                          Text(
+                                            _formatCategory(
+                                              tx['category'] ?? 'transfer',
+                                            ),
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w500,
+                                              color: Colors.grey[500],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+
+                                    // Amount with sign
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.end,
+                                      children: [
+                                        Text(
+                                          '${isDebit ? '−' : '+'}$symbol${amount.toStringAsFixed(currency == 'LBP' ? 0 : 2)}',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.w700,
+                                            fontSize: 14,
+                                            color: isDebit
+                                                ? const Color(0xFFFF6B6B)
+                                                : const Color(0xFF4CAF50),
+                                          ),
+                                        ),
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          currency,
+                                          style: TextStyle(
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.w500,
+                                            color: Colors.grey[400],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+
+                if (isExpanded) const SizedBox(height: 8),
+              ],
+            );
+          }).toList(),
+        ],
+      );
+    });
+  }
+
+  // Helper: Get category icon
+  IconData _getCategoryIcon(String category) {
+    switch (category.toLowerCase()) {
+      case 'transfer':
+        return Icons.compare_arrows_rounded;
+      case 'payment':
+        return Icons.payment_rounded;
+      case 'withdrawal':
+        return Icons.arrow_upward_rounded;
+      case 'deposit':
+        return Icons.arrow_downward_rounded;
+      case 'cashpickup':
+        return Icons.local_atm_rounded;
+      case 'exchange':
+        return Icons.swap_horiz_rounded;
+      case 'fee':
+        return Icons.receipt_long_rounded;
+      default:
+        return Icons.account_balance_wallet_rounded;
+    }
+  }
+
+  // Helper: Get category color
+  Color _getCategoryColor(String category) {
+    switch (category.toLowerCase()) {
+      case 'transfer':
+        return const Color(0xFF1E88E5);
+      case 'payment':
+        return const Color(0xFFFF9800);
+      case 'withdrawal':
+        return const Color(0xFFFF6B6B);
+      case 'deposit':
+        return const Color(0xFF4CAF50);
+      case 'cashpickup':
+        return const Color(0xFF673AB7);
+      case 'exchange':
+        return const Color(0xFF00BCD4);
+      case 'fee':
+        return const Color(0xFF9E9E9E);
+      default:
+        return const Color(0xFF1E88E5);
+    }
+  }
+
+  // Helper: Format category label
+  String _formatCategory(String category) {
+    switch (category.toLowerCase()) {
+      case 'transfer':
+        return 'Transfer';
+      case 'payment':
+        return 'Payment';
+      case 'withdrawal':
+        return 'Withdrawal';
+      case 'deposit':
+        return 'Deposit';
+      case 'cashpickup':
+        return 'Cash Pickup';
+      case 'exchange':
+        return 'Exchange';
+      case 'fee':
+        return 'Fee';
+      default:
+        return category;
+    }
+  }
+
+  Map<String, List<Map<String, dynamic>>> groupByDay(
+    List<Map<String, dynamic>> transactions,
+  ) {
+    final Map<String, List<Map<String, dynamic>>> grouped = {};
+    final now = DateTime.now();
+
+    for (final tx in transactions) {
+      final dateStr = tx['date'] ?? '';
+      if (dateStr.isEmpty) continue;
+
+      final txDate = DateTime.tryParse(dateStr);
+      if (txDate == null) continue;
+
+      String key;
+      final diff = now.difference(txDate).inDays;
+
+      if (diff == 0) {
+        key = 'Today';
+      } else if (diff == 1) {
+        key = 'Yesterday';
+      } else {
+        key = dateStr;
+      }
+
+      grouped.putIfAbsent(key, () => []);
+      grouped[key]!.add(tx);
+    }
+
+    return grouped;
   }
 }

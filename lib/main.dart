@@ -1,26 +1,42 @@
+import 'package:cashpilot/Core/Services/LocalNotificationService.dart';
 import 'package:cashpilot/Routes/AppRoute.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:cashpilot/Routes/AppPage.dart';
 import 'package:cashpilot/Core/Services/FcmService.dart';
 
-// 🔥 ADD THESE TWO IMPORTS
+// 🔥 Firebase imports
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 void main() async {
-  // 🔥 REQUIRED for Firebase
-
   WidgetsFlutterBinding.ensureInitialized();
 
-  // 🔥 Initialize Firebase
   await Firebase.initializeApp();
 
-  FcmService.getToken().then((token) {
-    print('🔥 FCM TOKEN: $token');
+  // 🔔 Init local notifications
+  await LocalNotificationService.init();
+
+  // 🔥 Background notifications
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
+  // 🔥 Foreground notifications
+  FirebaseMessaging.onMessage.listen((message) {
+    final notification = message.notification;
+    if (notification != null) {
+      LocalNotificationService.show(
+        title: notification.title ?? 'CashPilot',
+        body: notification.body ?? '',
+      );
+    }
   });
 
-  // ✅ YOUR CODE (UNCHANGED)
   runApp(const MyApp());
+}
+
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp();
+  print('📩 Background message');
 }
 
 class MyApp extends StatelessWidget {

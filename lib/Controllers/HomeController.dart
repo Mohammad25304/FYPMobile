@@ -1,10 +1,36 @@
+import 'package:cashpilot/Controllers/NotificationController.dart';
 import 'package:cashpilot/Core/Storage/SessionManager.dart';
 import 'package:cashpilot/Controllers/LoginController.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart' hide Response;
 import 'package:cashpilot/Core/Network/DioClient.dart';
 import 'package:dio/dio.dart';
 
 class HomeController extends GetxController {
+  void _initFirebaseForegroundListener() {
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      final notification = message.notification;
+
+      if (notification != null) {
+        // 🔔 Show in-app alert (foreground)
+        Get.snackbar(
+          notification.title ?? 'Notification',
+          notification.body ?? '',
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: const Color(0xFF1E88E5),
+          colorText: Colors.white,
+          duration: const Duration(seconds: 3),
+        );
+      }
+
+      // 🔄 Optional but recommended: refresh notifications list
+      if (Get.isRegistered<NotificationController>()) {
+        Get.find<NotificationController>().fetchNotifications();
+      }
+    });
+  }
+
   var currentIndex = 0.obs;
 
   void changePage(int index) {
@@ -57,12 +83,30 @@ class HomeController extends GetxController {
   void onInit() {
     super.onInit();
     fetchDashboardData();
+    _initFirebaseForegroundListener();
+  }
+
+  void _listenToFirebase() {
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      final title = message.notification?.title ?? 'Notification';
+      final body = message.notification?.body ?? '';
+
+      Get.snackbar(
+        title,
+        body,
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Colors.black87,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 4),
+      );
+    });
   }
 
   @override
   void onReady() {
     super.onReady();
     fetchDashboardData();
+    _initFirebaseForegroundListener();
   }
 
   // Helper to get current balance based on selected currency

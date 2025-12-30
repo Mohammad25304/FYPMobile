@@ -106,7 +106,8 @@ class Service extends GetView<ServiceController> {
               Get.off(() => const Home());
               break;
             case 1:
-              Get.off(() => Wallet());
+              Get.put(() => WalletController());
+              Get.to(() => Wallet());
               break;
             case 2:
               Get.put(PaymentController());

@@ -1,17 +1,19 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:dio/dio.dart';
 import '../Network/DioClient.dart';
 
 class FcmService {
   static final FirebaseMessaging _messaging = FirebaseMessaging.instance;
 
-  // ✅ ADD THIS METHOD (FIXES YOUR ERROR)
+  // 🔥 Call once at app start
+  static Future<void> init() async {
+    await _messaging.requestPermission(alert: true, badge: true, sound: true);
+  }
+
   static Future<String?> getToken() async {
-    await _messaging.requestPermission();
     return await _messaging.getToken();
   }
 
-  // ✅ Use this AFTER login
+  // 🔥 Call AFTER login
   static Future<void> sendTokenToBackend() async {
     final token = await getToken();
     if (token == null) return;

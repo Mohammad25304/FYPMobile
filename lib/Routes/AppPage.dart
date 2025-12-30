@@ -24,19 +24,16 @@ import 'package:cashpilot/Routes/AppRoute.dart';
 import 'package:cashpilot/Views/AboutUs.dart';
 import 'package:cashpilot/Views/AddMoney.dart';
 import 'package:cashpilot/Views/ChatbotView.dart';
-import 'package:cashpilot/Views/ChildView.dart';
 import 'package:cashpilot/Views/ContactInfo.dart';
 import 'package:cashpilot/Views/ForgetPassword.dart';
 import 'package:cashpilot/Views/ForgetPasswordOtp.dart';
 import 'package:cashpilot/Views/HelpCenterView.dart';
-import 'package:cashpilot/Views/ManagedAccountsView.dart';
 import 'package:cashpilot/Views/MonthlyStatsPage.dart';
 import 'package:cashpilot/Views/NotificationsView.dart';
 import 'package:cashpilot/Views/OtpVerificationPage.dart';
 import 'package:cashpilot/Views/PayInternetView.dart';
 import 'package:cashpilot/Views/PayTelecomView.dart';
 import 'package:cashpilot/Views/Payment.dart';
-import 'package:cashpilot/Views/PaymentRequestsView.dart';
 import 'package:cashpilot/Views/PrivacyView.dart';
 import 'package:cashpilot/Views/Profile.dart';
 import 'package:cashpilot/Views/QrScan.dart';
@@ -81,11 +78,7 @@ class AppPage {
     GetPage(name: AppRoute.home, page: () => Home(), binding: HomeBinding()),
 
     //Get page for wallet
-    GetPage(
-      name: '/wallet',
-      page: () => const Wallet(),
-      binding: WalletBinding(),
-    ),
+    GetPage(name: '/wallet', page: () => Wallet(), binding: WalletBinding()),
 
     //Get page for send money
     GetPage(
