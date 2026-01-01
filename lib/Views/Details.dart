@@ -2,6 +2,7 @@ import 'package:cashpilot/Bindings/AboutUsBinding.dart';
 import 'package:cashpilot/Bindings/ChatbotBinding.dart';
 import 'package:cashpilot/Bindings/ContactInfoBinding.dart';
 import 'package:cashpilot/Bindings/HelpCenterBinding.dart';
+import 'package:cashpilot/Bindings/MonthlyStatsBinding.dart';
 import 'package:cashpilot/Bindings/NotificationBinding.dart';
 import 'package:cashpilot/Bindings/PrivacyBinding.dart';
 import 'package:cashpilot/Bindings/ProfileBinding.dart';
@@ -18,6 +19,7 @@ import 'package:cashpilot/Views/ContactInfo.dart';
 import 'package:cashpilot/Views/DetailsView.dart';
 import 'package:cashpilot/Views/HelpCenterView.dart';
 import 'package:cashpilot/Views/Home.dart';
+import 'package:cashpilot/Views/MonthlyStatsPage.dart';
 import 'package:cashpilot/Views/NotificationsView.dart';
 import 'package:cashpilot/Views/Payment.dart';
 import 'package:cashpilot/Views/PrivacyView.dart';
@@ -58,6 +60,9 @@ class Details extends GetView<DetailsController> {
                       break;
                     case 'notification':
                       icon = Icons.notifications_rounded;
+                      break;
+                    case 'Stats':
+                      icon = Icons.bar_chart_rounded;
                       break;
                     case 'about_us':
                       icon = Icons.info_rounded;
@@ -108,6 +113,11 @@ class Details extends GetView<DetailsController> {
                           Get.to(
                             () => const NotificationsView(),
                             binding: NotificationBinding(),
+                          );
+                        } else if (item.keyName == 'stats') {
+                          Get.to(
+                            () => MonthlyStatsPage(),
+                            binding: MonthlyStatsBinding(),
                           );
                         } else if (item.keyName == 'about_us') {
                           Get.to(

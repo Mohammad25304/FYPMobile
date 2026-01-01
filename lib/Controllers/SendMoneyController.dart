@@ -1,58 +1,55 @@
+import 'dart:io';
+import 'dart:ui' as ui;
+
 import 'package:cashpilot/Controllers/HomeController.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:dio/dio.dart';
 import 'package:cashpilot/Controllers/WalletController.dart';
 import 'package:cashpilot/Core/Network/DioClient.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class SendMoneyController extends GetxController {
-  // Text controllers
+  // ======================
+  // CONTROLLERS
+  // ======================
   final amountController = TextEditingController();
   final recipientEmailController = TextEditingController();
   final recipientNameController = TextEditingController();
   final recipientPhoneController = TextEditingController();
   final noteController = TextEditingController();
+
   final homeController = Get.find<HomeController>();
-
-  // Observables
-  var selectedCurrency = 'USD'.obs;
-  var amount = 0.0.obs;
-  var recipientEmail = ''.obs;
-
-  var isSending = false.obs;
-  var lastTransactionId = ''.obs;
-  var isSharing = false.obs;
-
-  // Wallet controller
   final walletController = Get.find<WalletController>();
-
-  // Dio
   final Dio _dio = DioClient().getInstance();
 
-  String _buildReceiptMessage() {
-    return '''
-    CashPilot Transaction Receipt
+  // ======================
+  // STATE
+  // ======================
+  final selectedCurrency = 'USD'.obs;
+  final amount = 0.0.obs;
+  final recipientEmail = ''.obs;
 
-    Amount: $currencySymbol${amount.value.toStringAsFixed(2)}
-    Currency: ${selectedCurrency.value}
-    To: ${recipientEmailController.text}
-    Date: ${_getCurrentDate()}
+  final fee = 0.0.obs;
+  final total = 0.0.obs;
 
-    Thank you for using CashPilot 💙
-    ''';
-  }
+  final isFeeLoading = false.obs;
+  final isSending = false.obs;
+  final isSharing = false.obs;
 
-  String _sanitizePhone(String phone) {
-    return phone
-        .replaceAll('+', '')
-        .replaceAll(' ', '')
-        .replaceAll('-', '')
-        .replaceAll('(', '')
-        .replaceAll(')', '');
-  }
+  final lastTransactionId = ''.obs;
 
-  // Get balances from wallet
+  // ======================
+  // CONFIG
+  // ======================
+  static const String receiptBaseUrl = "https://cashpilot.app/receipt";
+
+  // ======================
+  // BALANCES
+  // ======================
   double get usdBalance => walletController.usdBalance.value;
   double get eurBalance => walletController.eurBalance.value;
   double get lbpBalance => walletController.lbpBalance.value;
@@ -83,16 +80,22 @@ class SendMoneyController extends GetxController {
     }
   }
 
+  // ======================
+  // VALIDATION
+  // ======================
   bool get canSend {
-    final total = amount.value + calculateFee();
     return amount.value > 0 &&
-        total <= availableBalance &&
+        total.value <= availableBalance &&
         recipientEmail.value.isNotEmpty &&
         !isSending.value;
   }
 
+  // ======================
+  // INPUT HANDLERS
+  // ======================
   void selectCurrency(String currency) {
     selectedCurrency.value = currency;
+    fetchFeePreview();
   }
 
   void updateRecipientEmail(String value) {
@@ -101,44 +104,57 @@ class SendMoneyController extends GetxController {
 
   void updateAmount(String value) {
     amount.value = double.tryParse(value) ?? 0.0;
+    fetchFeePreview();
   }
 
-  void setQuickAmount(String value) {
-    amountController.text = value;
-    amount.value = double.parse(value);
+  // ======================
+  // 🔐 FEE PREVIEW (BACKEND)
+  // ======================
+  Future<void> fetchFeePreview() async {
+    if (amount.value <= 0) {
+      fee.value = 0;
+      total.value = amount.value;
+      return;
+    }
+
+    isFeeLoading.value = true;
+
+    try {
+      final response = await _dio.post(
+        "fees/preview",
+        data: {
+          "context": "send_money",
+          "currency": selectedCurrency.value,
+          "amount": amount.value,
+        },
+      );
+
+      fee.value = (response.data["fee"] ?? 0).toDouble();
+      total.value = (response.data["total"] ?? amount.value).toDouble();
+    } catch (_) {
+      fee.value = 0;
+      total.value = amount.value;
+    } finally {
+      isFeeLoading.value = false;
+    }
   }
 
-  void _shareError(String app) {
-    Get.snackbar(
-      "Unavailable",
-      "$app is not available on this device",
-      backgroundColor: Colors.red,
-      colorText: Colors.white,
-    );
-  }
+  double calculateFee() => fee.value;
 
-  double calculateFee() => amount.value * 0.01;
-
-  // ==============================
-  // SEND MONEY API CALL
-  // ==============================
+  // ======================
+  // SEND MONEY
+  // ======================
   Future<void> sendMoney() async {
     if (!canSend) return;
+
+    if (!_isValidEmail(recipientEmailController.text)) {
+      _error("Invalid email address");
+      return;
+    }
 
     isSending.value = true;
 
     try {
-      if (!_isValidEmail(recipientEmailController.text)) {
-        Get.snackbar(
-          "Invalid Email",
-          "Please enter a valid email address",
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-        );
-        isSending.value = false;
-        return;
-      }
-
       final response = await _dio.post(
         "send-money",
         data: {
@@ -149,141 +165,55 @@ class SendMoneyController extends GetxController {
         },
       );
 
-      debugPrint("🔥 SEND MONEY RESPONSE: ${response.data}");
+      lastTransactionId.value = response.data["transaction_id"].toString();
 
-      // Save transaction ID (for share)
-      if (response.data["transaction_id"] != null) {
-        lastTransactionId.value = response.data["transaction_id"].toString();
-      }
-
-      // UPDATE WALLET BALANCES - aligned with backend keys
-      if (response.data["sender_balance"] != null) {
-        final b = response.data["sender_balance"];
-
-        if (b["usd_balance"] != null) {
-          walletController.usdBalance.value =
-              double.tryParse(b["usd_balance"].toString()) ??
-              walletController.usdBalance.value;
-        }
-        if (b["eur_balance"] != null) {
-          walletController.eurBalance.value =
-              double.tryParse(b["eur_balance"].toString()) ??
-              walletController.eurBalance.value;
-        }
-        if (b["lbp_balance"] != null) {
-          walletController.lbpBalance.value =
-              double.tryParse(b["lbp_balance"].toString()) ??
-              walletController.lbpBalance.value;
-        }
-      }
-      // walletController.addTransaction({
-      //   'title': 'Send Money',
-      //   'amount': amount.value,
-      //   'type': 'debit',
-      //   'currency': selectedCurrency.value,
-      //   'category': 'send', // ✅ IMPORTANT
-      //   'date': DateTime.now().toIso8601String(),
-      // });
-
-      // Extra safety – refresh wallet from API
       await walletController.refreshAll();
       await homeController.fetchDashboardData();
 
-      // Success popup
       _showSuccessDialog();
     } catch (e) {
-      debugPrint("❌ Send Money Error: $e");
-
-      Get.snackbar(
-        "Error",
+      _error(
         e is DioException
-            ? (e.response?.data["message"]?.toString() ??
-                  "Failed to send money")
-            : "Failed to send money.",
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
+            ? e.response?.data["message"] ?? "Failed to send money"
+            : "Failed to send money",
       );
     } finally {
       isSending.value = false;
     }
   }
 
-  // ==============================
-  // SUCCESS POPUP
-  // ==============================
+  // ======================
+  // SUCCESS UI
+  // ======================
   void _showSuccessDialog() {
     Get.dialog(
       Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(32),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [Color(0xFF4CAF50), Color(0xFF45A049)],
-                    ),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.check_rounded,
-                    color: Colors.white,
-                    size: 48,
-                  ),
-                ),
-                const SizedBox(height: 24),
-
-                const Text(
-                  "Money Sent Successfully!",
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
-                  textAlign: TextAlign.center,
-                ),
-
-                const SizedBox(height: 12),
-
-                Text(
-                  "You sent $currencySymbol${amount.value.toStringAsFixed(2)} to ${recipientNameController.text.isNotEmpty ? recipientNameController.text : recipientEmailController.text}",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.grey[600]),
-                ),
-
-                const SizedBox(height: 28),
-
-                ElevatedButton(
-                  onPressed: () {
-                    Get.back();
-                    _showShareDialog();
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFF1E88E5),
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
-                  child: const Text("Share Receipt"),
-                ),
-
-                const SizedBox(height: 12),
-
-                ElevatedButton(
-                  onPressed: () {
-                    _clearAllFields();
-                    Get.back(); // close dialog
-                    Get.back(); // back to wallet
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.grey[300],
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
-                  child: Text(
-                    "Back to Wallet",
-                    style: TextStyle(color: Colors.grey[700]),
-                  ),
-                ),
-              ],
-            ),
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.check_circle, color: Colors.green, size: 56),
+              const SizedBox(height: 20),
+              const Text(
+                "Money Sent Successfully",
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                "You sent $currencySymbol${amount.value.toStringAsFixed(2)}",
+                style: TextStyle(color: Colors.grey[600]),
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: () {
+                  Get.back();
+                  _showShareDialog();
+                },
+                child: const Text("Share Receipt"),
+              ),
+            ],
           ),
         ),
       ),
@@ -291,218 +221,23 @@ class SendMoneyController extends GetxController {
     );
   }
 
-  // ==============================
-  // SHARE METHODS POPUP
-  // ==============================
+  // ======================
+  // SHARE OPTIONS
+  // ======================
   void _showShareDialog() {
     Get.dialog(
       Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         child: Padding(
           padding: const EdgeInsets.all(24),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text(
-                  "Share Transaction Receipt",
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
-                ),
-                const SizedBox(height: 24),
-
-                _shareButton(
-                  "email",
-                  Icons.email_outlined,
-                  "Email",
-                  "Send via Email",
-                ),
-                const SizedBox(height: 12),
-
-                _shareButton("sms", Icons.sms_outlined, "SMS", "Send via SMS"),
-                const SizedBox(height: 12),
-
-                _shareButton(
-                  "whatsapp",
-                  Icons.chat_bubble_outline_rounded,
-                  "WhatsApp",
-                  "Send via WhatsApp",
-                ),
-
-                const SizedBox(height: 24),
-
-                ElevatedButton(
-                  onPressed: () {
-                    _clearAllFields();
-                    Get.back(); // close share popup
-                    Get.back(); // close success popup
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.grey[300],
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
-                  child: Text(
-                    "Skip",
-                    style: TextStyle(color: Colors.grey[700]),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-      barrierDismissible: false,
-    );
-  }
-
-  // ==============================
-  // SHARE API CALL
-  // ==============================
-  Future<void> shareTransaction(String method) async {
-    if (lastTransactionId.value.isEmpty) return;
-
-    isSharing.value = true;
-
-    try {
-      // 1️⃣ Call backend (keep your existing logic)
-      final response = await _dio.post(
-        "transactions/share",
-        data: {
-          "transaction_id": lastTransactionId.value,
-          "method": method,
-          "recipient": _getShareRecipient(method),
-        },
-      );
-
-      debugPrint("🔥 SHARE RESPONSE: ${response.data}");
-
-      // 2️⃣ Build receipt message
-      final message = Uri.encodeComponent('''
-        CashPilot Transaction Receipt
-
-        Amount: $currencySymbol${amount.value.toStringAsFixed(2)}
-        Currency: ${selectedCurrency.value}
-        To: ${recipientEmailController.text}
-        Date: ${_getCurrentDate()}
-
-        Have A Nice Day!!  
-        ''');
-
-      // 3️⃣ EMAIL
-      if (method == "email") {
-        final email = recipientEmailController.text;
-
-        final uri = Uri.parse(
-          "mailto:$email?subject=CashPilot Receipt&body=$message",
-        );
-
-        if (await canLaunchUrl(uri)) {
-          await launchUrl(uri);
-        } else {
-          _shareError("Email");
-        }
-      }
-
-      // 4️⃣ WHATSAPP (FIXED)
-      if (method == "whatsapp") {
-        final rawPhone = recipientPhoneController.text.trim();
-
-        if (rawPhone.isEmpty) {
-          _shareError("WhatsApp phone number");
-          return;
-        }
-
-        final phone = _sanitizePhone(rawPhone);
-
-        final uri = Uri.parse("https://wa.me/$phone?text=$message");
-
-        if (await canLaunchUrl(uri)) {
-          await launchUrl(
-            uri,
-            mode: LaunchMode.externalApplication, // 🔥 REQUIRED
-          );
-        } else {
-          _shareError("WhatsApp");
-        }
-      }
-
-      // 5️⃣ Success feedback
-      Get.snackbar(
-        "Success",
-        "Receipt shared via $method",
-        backgroundColor: Colors.green,
-        colorText: Colors.white,
-      );
-
-      Future.delayed(const Duration(seconds: 1), () {
-        _clearAllFields();
-        Get.back(); // close share popup
-        Get.back(); // close success popup
-      });
-    } catch (e) {
-      debugPrint("❌ Share Transaction Error: $e");
-
-      Get.snackbar(
-        "Error",
-        "Failed to share receipt",
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
-    } finally {
-      isSharing.value = false;
-    }
-  }
-
-  // Build each share option button
-  Widget _shareButton(
-    String method,
-    IconData icon,
-    String title,
-    String subtitle,
-  ) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () => shareTransaction(method),
-        borderRadius: BorderRadius.circular(14),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF8FAFC),
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: const Color(0xFFE2E8F0)),
-          ),
-          child: Row(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF1E88E5), Color(0xFF1565C0)],
-                  ),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(icon, color: Colors.white),
-              ),
-              const SizedBox(width: 16),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    subtitle,
-                    style: TextStyle(fontSize: 12, color: Colors.grey[500]),
-                  ),
-                ],
-              ),
-              const Spacer(),
-              Icon(Icons.arrow_forward_rounded, color: Colors.grey[400]),
+              _shareButton("email", Icons.email, "Share via Email"),
+              const SizedBox(height: 12),
+              _shareButton("pdf", Icons.picture_as_pdf, "Share as PDF"),
+              const SizedBox(height: 12),
+              _shareButton("image", Icons.image, "Share as Image"),
             ],
           ),
         ),
@@ -510,32 +245,254 @@ class SendMoneyController extends GetxController {
     );
   }
 
-  // ==============================
+  Widget _shareButton(String type, IconData icon, String title) {
+    return Obx(
+      () => InkWell(
+        onTap: isSharing.value
+            ? null
+            : () async {
+                isSharing.value = true;
+                if (type == "email") {
+                  await shareViaEmail();
+                } else if (type == "pdf") {
+                  await sharePdfReceipt();
+                } else {
+                  await shareImageReceipt();
+                }
+                isSharing.value = false;
+              },
+        child: Row(
+          children: [
+            Icon(icon),
+            const SizedBox(width: 12),
+            Text(title),
+            if (isSharing.value) ...[
+              const SizedBox(width: 10),
+              const SizedBox(
+                width: 14,
+                height: 14,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ======================
+  // EMAIL SHARE (AUTO-FILLED RECEIVER)
+  // ======================
+  Future<void> shareViaEmail() async {
+    if (lastTransactionId.value.isEmpty) return;
+
+    final verificationUrl = "$receiptBaseUrl/${lastTransactionId.value}";
+
+    final body =
+        '''
+CashPilot Transaction Receipt
+
+Transaction ID: ${lastTransactionId.value}
+Amount: $currencySymbol${amount.value.toStringAsFixed(2)}
+Fee: $currencySymbol${fee.value.toStringAsFixed(2)}
+Total: $currencySymbol${total.value.toStringAsFixed(2)}
+Currency: ${selectedCurrency.value}
+Date: ${DateTime.now()}
+
+Verify this receipt:
+$verificationUrl
+
+Thank you for using CashPilot 💙
+''';
+
+    final uri = Uri(
+      scheme: 'mailto',
+      path: recipientEmailController.text, // 🔥 AUTO-FILLED RECEIVER
+      queryParameters: {
+        'subject': 'CashPilot Transaction Receipt',
+        'body': body,
+      },
+    );
+
+    if (!await canLaunchUrl(uri)) {
+      _error("Cannot open email app");
+      return;
+    }
+
+    await _logShare("email");
+    await launchUrl(uri, mode: LaunchMode.externalApplication);
+  }
+
+  // ======================
+  // PDF RECEIPT
+  // ======================
+  Future<File> _generatePdfReceipt() async {
+    final verificationUrl = "$receiptBaseUrl/${lastTransactionId.value}";
+
+    final pdf = pw.Document();
+
+    pdf.addPage(
+      pw.Page(
+        build: (context) => pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          children: [
+            pw.Text(
+              "CashPilot Transaction Receipt",
+              style: pw.TextStyle(fontSize: 22, fontWeight: pw.FontWeight.bold),
+            ),
+            pw.SizedBox(height: 20),
+            pw.Text("Transaction ID: ${lastTransactionId.value}"),
+            pw.Text(
+              "Amount: $currencySymbol${amount.value.toStringAsFixed(2)}",
+            ),
+            pw.Text("Fee: $currencySymbol${fee.value.toStringAsFixed(2)}"),
+            pw.Text("Total: $currencySymbol${total.value.toStringAsFixed(2)}"),
+            pw.Text("Currency: ${selectedCurrency.value}"),
+            pw.Text("Recipient: ${recipientEmailController.text}"),
+            pw.Text("Date: ${DateTime.now()}"),
+            pw.SizedBox(height: 16),
+            pw.Text("Verify receipt:"),
+            pw.Text(verificationUrl),
+          ],
+        ),
+      ),
+    );
+
+    final dir = await getApplicationDocumentsDirectory();
+    final file = File(
+      "${dir.path}/CashPilot_Receipt_${lastTransactionId.value}.pdf",
+    );
+
+    await file.writeAsBytes(await pdf.save());
+    return file;
+  }
+
+  Future<void> sharePdfReceipt() async {
+    try {
+      final file = await _generatePdfReceipt();
+      await _logShare("pdf");
+
+      await Share.shareXFiles([
+        XFile(file.path),
+      ], text: "CashPilot Transaction Receipt");
+    } catch (_) {
+      _error("Failed to share PDF receipt");
+    }
+  }
+
+  // ======================
+  // IMAGE RECEIPT
+  // ======================
+  Future<File> _generateImageReceipt() async {
+    final recorder = ui.PictureRecorder();
+    final canvas = Canvas(recorder);
+
+    const width = 1080.0;
+    const height = 760.0;
+
+    canvas.drawRect(
+      Rect.fromLTWH(0, 0, width, height),
+      Paint()..color = Colors.white,
+    );
+
+    final textPainter = TextPainter(textDirection: TextDirection.ltr);
+    double y = 40;
+
+    void draw(String text, double size, FontWeight weight) {
+      textPainter.text = TextSpan(
+        text: text,
+        style: TextStyle(
+          fontSize: size,
+          fontWeight: weight,
+          color: Colors.black,
+        ),
+      );
+      textPainter.layout(maxWidth: width - 80);
+      textPainter.paint(canvas, Offset(40, y));
+      y += textPainter.height + 16;
+    }
+
+    final verificationUrl = "$receiptBaseUrl/${lastTransactionId.value}";
+
+    draw("CashPilot Transaction Receipt", 30, FontWeight.bold);
+    draw("Transaction ID: ${lastTransactionId.value}", 18, FontWeight.normal);
+    draw(
+      "Amount: $currencySymbol${amount.value.toStringAsFixed(2)}",
+      18,
+      FontWeight.normal,
+    );
+    draw(
+      "Fee: $currencySymbol${fee.value.toStringAsFixed(2)}",
+      18,
+      FontWeight.normal,
+    );
+    draw(
+      "Total: $currencySymbol${total.value.toStringAsFixed(2)}",
+      20,
+      FontWeight.bold,
+    );
+    draw("Currency: ${selectedCurrency.value}", 18, FontWeight.normal);
+    draw("Recipient: ${recipientEmailController.text}", 18, FontWeight.normal);
+    draw("Verify: $verificationUrl", 16, FontWeight.normal);
+
+    final picture = recorder.endRecording();
+    final image = await picture.toImage(width.toInt(), height.toInt());
+    final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
+
+    final dir = await getApplicationDocumentsDirectory();
+    final file = File(
+      "${dir.path}/CashPilot_Receipt_${lastTransactionId.value}.png",
+    );
+
+    await file.writeAsBytes(bytes!.buffer.asUint8List());
+    return file;
+  }
+
+  Future<void> shareImageReceipt() async {
+    try {
+      final file = await _generateImageReceipt();
+      await _logShare("image");
+
+      await Share.shareXFiles([
+        XFile(file.path),
+      ], text: "CashPilot Transaction Receipt");
+    } catch (_) {
+      _error("Failed to share image receipt");
+    }
+  }
+
+  // ======================
+  // BACKEND SHARE LOG
+  // ======================
+  Future<void> _logShare(String method) async {
+    try {
+      await _dio.post(
+        "transactions/share",
+        data: {
+          "transaction_id": lastTransactionId.value,
+          "method": method,
+          "recipient": recipientEmailController.text,
+        },
+      );
+    } catch (_) {}
+  }
+
+  // ======================
   // HELPERS
-  // ==============================
-  String _getShareRecipient(String method) {
-    if (method == "email") return recipientEmailController.text;
-    return recipientPhoneController.text;
-  }
-
-  void _clearAllFields() {
-    amountController.clear();
-    recipientEmailController.clear();
-    recipientNameController.clear();
-    recipientPhoneController.clear();
-    noteController.clear();
-    amount.value = 0.0;
-    lastTransactionId.value = "";
-  }
-
-  String _getCurrentDate() {
-    final now = DateTime.now();
-    return "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
-  }
-
+  // ======================
   bool _isValidEmail(String email) {
-    final regex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
-    return regex.hasMatch(email);
+    return RegExp(
+      r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+    ).hasMatch(email);
+  }
+
+  void _error(String msg) {
+    Get.snackbar(
+      "Error",
+      msg,
+      backgroundColor: Colors.red,
+      colorText: Colors.white,
+    );
   }
 
   @override
@@ -546,25 +503,5 @@ class SendMoneyController extends GetxController {
     recipientPhoneController.dispose();
     noteController.dispose();
     super.onClose();
-  }
-
-  @override
-  void onInit() {
-    super.onInit();
-
-    final home = Get.find<HomeController>();
-
-    if (home.accountStatus.value != 'active') {
-      Get.snackbar(
-        'Account Not Active',
-        'You cannot send money until your account is verified.',
-        backgroundColor: Colors.orange,
-        colorText: Colors.white,
-      );
-
-      Future.delayed(const Duration(milliseconds: 300), () {
-        Get.back();
-      });
-    }
   }
 }

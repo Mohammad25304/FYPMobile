@@ -161,8 +161,9 @@ class SendCashPickup extends GetView<CashPickupController> {
           const SizedBox(height: 10),
 
           Obx(() {
-            final fee = controller.calculateFee();
-            final total = controller.amount.value + fee;
+            if (controller.isFeeLoading.value) {
+              return const LinearProgressIndicator(minHeight: 3);
+            }
 
             return Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -175,10 +176,10 @@ class SendCashPickup extends GetView<CashPickupController> {
                   ),
                 ),
                 if (controller.amount.value > 0 &&
-                    total <= controller.availableBalance)
+                    controller.total.value <= controller.availableBalance)
                   _badge("Valid ✓", Colors.green),
                 if (controller.amount.value > 0 &&
-                    total > controller.availableBalance)
+                    controller.total.value > controller.availableBalance)
                   _badge("Insufficient", Colors.red),
               ],
             );
@@ -205,21 +206,18 @@ class SendCashPickup extends GetView<CashPickupController> {
     return Obx(() {
       if (controller.amount.value == 0) return const SizedBox.shrink();
 
-      final fee = controller.calculateFee();
-      final total = controller.amount.value + fee;
-
       return _sectionCard(
         gradient: true,
         child: Column(
           children: [
             _summaryRow("Amount", controller.amount.value),
             const SizedBox(height: 12),
-            _summaryRow("Service Fee", fee),
+            _summaryRow("Service Fee", controller.fee.value),
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 12),
               child: Divider(color: Colors.white54),
             ),
-            _summaryRow("Total to Pay", total, bold: true),
+            _summaryRow("Total to Pay", controller.total.value, bold: true),
           ],
         ),
       );
@@ -269,41 +267,20 @@ class SendCashPickup extends GetView<CashPickupController> {
                 : null,
             color: controller.canSend ? null : Colors.grey[300],
             borderRadius: BorderRadius.circular(18),
-            boxShadow: controller.canSend
-                ? [
-                    BoxShadow(
-                      color: Colors.blue.withOpacity(0.4),
-                      blurRadius: 14,
-                      offset: const Offset(0, 6),
-                    ),
-                  ]
-                : [],
           ),
           child: controller.isSending.value
               ? const Center(
                   child: CircularProgressIndicator(color: Colors.white),
                 )
-              : Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.send_rounded,
-                      color: controller.canSend
-                          ? Colors.white
-                          : Colors.grey[500],
+              : const Center(
+                  child: Text(
+                    "Send Cash",
+                    style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
                     ),
-                    const SizedBox(width: 10),
-                    Text(
-                      "Send Cash",
-                      style: TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w700,
-                        color: controller.canSend
-                            ? Colors.white
-                            : Colors.grey[600],
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
         ),
       ),
@@ -407,14 +384,6 @@ class SendCashPickup extends GetView<CashPickupController> {
         borderRadius: BorderRadius.circular(14),
         borderSide: BorderSide(color: Colors.grey.shade300),
       ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: BorderSide(color: Colors.grey.shade300),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: Color(0xFF1E88E5), width: 2),
-      ),
     );
   }
 
@@ -446,53 +415,6 @@ class SendCashPickup extends GetView<CashPickupController> {
           fontSize: 11,
           fontWeight: FontWeight.w700,
           color: color,
-        ),
-      ),
-    );
-  }
-
-  Widget cancelCashPickupButton({
-    required int transactionId,
-    required String status,
-  }) {
-    if (status != 'pending') return const SizedBox.shrink();
-
-    return Padding(
-      padding: const EdgeInsets.only(top: 16),
-      child: GestureDetector(
-        onTap: () {
-          Get.defaultDialog(
-            title: "Cancel Cash Pickup",
-            middleText:
-                "Are you sure you want to cancel this cash pickup?\nThe amount will be refunded to your wallet.",
-            textConfirm: "Yes, Cancel",
-            textCancel: "No",
-            confirmTextColor: Colors.white,
-            buttonColor: Colors.red,
-            onConfirm: () {
-              Get.back();
-              Get.find<CashPickupController>().cancelCashPickup(transactionId);
-            },
-          );
-        },
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(vertical: 14),
-          decoration: BoxDecoration(
-            color: Colors.red.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: Colors.red),
-          ),
-          child: const Center(
-            child: Text(
-              "Cancel Cash Pickup",
-              style: TextStyle(
-                color: Colors.red,
-                fontWeight: FontWeight.w700,
-                fontSize: 15,
-              ),
-            ),
-          ),
         ),
       ),
     );

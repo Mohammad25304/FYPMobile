@@ -94,7 +94,9 @@ class TransferMoneyController extends GetxController {
     toCurrency.value = temp;
   }
 
-  // 🔥 MAIN FIXED METHOD
+  // =============================
+  // API CALL (Backend decides fee)
+  // =============================
   Future<void> transferMoney() async {
     if (!canTransfer) return;
 
@@ -108,8 +110,8 @@ class TransferMoneyController extends GetxController {
         note: noteController.text.isEmpty ? null : noteController.text,
       );
 
-      // 🔥 THIS IS THE FIX (HERE!)
-      await Get.find<WalletController>().fetchWalletData();
+      // Backend is source of truth
+      await walletController.fetchWalletData();
 
       _showSuccessDialog();
     } catch (e) {
@@ -150,9 +152,10 @@ class TransferMoneyController extends GetxController {
     super.onClose();
   }
 
-  // ================= PREVIEW ONLY (UI) =================
-  // These rates are ONLY for UI preview.
-  // Backend is the source of truth for real transfer.
+  // =============================
+  // UI PREVIEW ONLY (NO BUSINESS)
+  // =============================
+  // Backend exchange & fees are final
 
   final Map<String, Map<String, double>> _previewRates = {
     'USD': {'EUR': 0.92, 'LBP': 89500},

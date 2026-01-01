@@ -7,12 +7,9 @@ import 'HomeController.dart';
 class PayTelecomController extends GetxController {
   final PaymentApi _api = PaymentApi();
   final selectedCurrency = 'USD'.obs;
-  final WalletController walletController = Get.put<WalletController>(
-    WalletController(),
-  );
-  final HomeController homeController = Get.put<HomeController>(
-    HomeController(),
-  );
+
+  final WalletController walletController = Get.put(WalletController());
+  final HomeController homeController = Get.put(HomeController());
 
   late Map<String, dynamic> provider;
 
@@ -43,10 +40,8 @@ class PayTelecomController extends GetxController {
         currency: selectedCurrency.value,
       );
 
-      // ✅ REFRESH DATA
       await walletController.fetchWalletData();
       await homeController.fetchDashboardData();
-      // await transactionsController.fetchTransactions(); // if exists
 
       Get.snackbar(
         'Success',

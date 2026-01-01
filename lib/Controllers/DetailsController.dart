@@ -15,6 +15,11 @@ class DetailsController extends GetxController {
       description: 'Here you can see your notifications',
     ),
     Detail(
+      title: 'Stats',
+      keyName: 'Stats',
+      description: 'Here you can see your financial statistics',
+    ),
+    Detail(
       title: 'ChatBot',
       keyName: 'chatbot',
       description: 'Here you can chat with our AI assistant',
