@@ -1,7 +1,7 @@
 // Views/HelpCenterView.dart
 import 'package:cashpilot/Controllers/ChatbotController.dart';
-import 'package:cashpilot/Views/ChatbotView.dart';
 import 'package:cashpilot/Views/ContactInfo.dart';
+import 'package:cashpilot/Views/Support/Chatbot.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:cashpilot/Controllers/HelpCenterController.dart';
@@ -285,7 +285,7 @@ class HelpCenterView extends GetView<HelpCenterController> {
                         if (!Get.isRegistered<ChatbotController>()) {
                           Get.put(ChatbotController());
                         }
-                        Get.to(() => ChatbotView());
+                        Get.to(() => ChatbotPage());
                       },
                     ),
                     const SizedBox(height: 12),

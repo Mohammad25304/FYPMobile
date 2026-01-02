@@ -16,7 +16,7 @@ class DetailsController extends GetxController {
     ),
     Detail(
       title: 'Stats',
-      keyName: 'Stats',
+      keyName: 'stats',
       description: 'Here you can see your financial statistics',
     ),
     Detail(

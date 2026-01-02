@@ -23,7 +23,6 @@ import 'package:cashpilot/Bindings/TermsBinding.dart';
 import 'package:cashpilot/Routes/AppRoute.dart';
 import 'package:cashpilot/Views/AboutUs.dart';
 import 'package:cashpilot/Views/AddMoney.dart';
-import 'package:cashpilot/Views/ChatbotView.dart';
 import 'package:cashpilot/Views/ContactInfo.dart';
 import 'package:cashpilot/Views/ForgetPassword.dart';
 import 'package:cashpilot/Views/ForgetPasswordOtp.dart';
@@ -42,6 +41,7 @@ import 'package:cashpilot/Views/SendCashPickup.dart';
 import 'package:cashpilot/Views/SendMoney.dart';
 import 'package:cashpilot/Views/Service.dart';
 import 'package:cashpilot/Views/SettingsView.dart';
+import 'package:cashpilot/Views/Support/Chatbot.dart';
 import 'package:cashpilot/Views/TermsView.dart';
 import 'package:cashpilot/Views/TransferMoney.dart';
 import 'package:get/get.dart';
@@ -200,7 +200,7 @@ class AppPage {
 
     GetPage(
       name: '/chatbot',
-      page: () => ChatbotView(),
+      page: () => ChatbotPage(),
       binding: ChatbotBinding(),
     ),
 

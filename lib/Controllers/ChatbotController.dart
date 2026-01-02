@@ -1,55 +1,73 @@
 import 'package:get/get.dart';
-import 'package:dio/dio.dart';
-import '../Model/ChatMessage.dart';
-import '../Core/Network/DioClient.dart';
+import 'package:webview_flutter/webview_flutter.dart';
+import 'package:flutter/material.dart';
 
 class ChatbotController extends GetxController {
-  final Dio _dio = DioClient().getInstance();
+  late final WebViewController webViewController;
 
-  var messages = <ChatMessage>[].obs;
-  var isTyping = false.obs;
+  var isLoading = true.obs;
+  var hasError = false.obs;
 
   @override
   void onInit() {
     super.onInit();
-    final args = Get.arguments;
-    if (args != null && args['mode'] == 'faq') {
-      sendMessage('Show me frequently asked questions about CashPilot');
-    }
-    // Welcome message
-    messages.add(
-      ChatMessage(
-        message:
-            "Hi 👋 I’m the CashPilot Assistant. I can help you understand how the app works.",
-        isUser: false,
-      ),
-    );
+    _initWebView();
   }
 
-  Future<void> sendMessage(String text) async {
-    if (text.trim().isEmpty) return;
-
-    // Add user message
-    messages.add(ChatMessage(message: text, isUser: true));
-    isTyping.value = true;
-
-    try {
-      final response = await _dio.post(
-        'chatbot/message',
-        data: {'message': text},
-      );
-
-      messages.add(ChatMessage(message: response.data['reply'], isUser: false));
-    } catch (e) {
-      messages.add(
-        ChatMessage(
-          message:
-              "Sorry, I couldn't process your request right now. Please try again.",
-          isUser: false,
+  void _initWebView() {
+    webViewController = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..setBackgroundColor(const Color(0xFFFFFFFF))
+      ..setNavigationDelegate(
+        NavigationDelegate(
+          onPageStarted: (_) {
+            isLoading.value = true;
+            hasError.value = false;
+          },
+          onPageFinished: (_) {
+            isLoading.value = false;
+          },
+          onWebResourceError: (_) {
+            hasError.value = true;
+            isLoading.value = false;
+          },
         ),
-      );
-    } finally {
-      isTyping.value = false;
+      )
+      ..loadHtmlString(_chatlingHtml, baseUrl: 'https://chatling.ai');
+  }
+
+  static const String _chatlingHtml = """
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+<script>
+  window.chtlConfig = {
+    chatbotId: "6412128358",
+    display: "fullscreen"
+  };
+</script>
+
+<script async
+        data-id="6412128358"
+        data-display="fullscreen"
+        id="chtl-script"
+        type="text/javascript"
+        src="https://chatling.ai/js/embed.js">
+</script>
+
+</body>
+</html>
+""";
+
+  Future<bool> onWillPop() async {
+    if (await webViewController.canGoBack()) {
+      await webViewController.goBack();
+      return false;
     }
+    return true;
   }
 }

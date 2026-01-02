@@ -269,115 +269,277 @@ class CashPickupController extends GetxController {
   }
 
   // =============================
-  // SUCCESS UI (WITH COUNTDOWN + SHARE)
+  // SUCCESS UI (REDESIGNED)
   // =============================
   void _showSuccessDialog() {
     Get.dialog(
       Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        child: Padding(
-          padding: const EdgeInsets.all(28),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.check_circle, color: Colors.green, size: 64),
-              const SizedBox(height: 16),
-              const Text(
-                "Cash Ready for Pickup",
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
-              ),
-              const SizedBox(height: 12),
-
-              Text("Pickup Code", style: TextStyle(color: Colors.grey[600])),
-              const SizedBox(height: 6),
-
-              Obx(
-                () => Text(
-                  pickupCode.value.isEmpty ? "-" : pickupCode.value,
-                  style: const TextStyle(
-                    fontSize: 26,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 2,
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 10),
-
-              // Countdown
-              Obx(
-                () => Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.timer_outlined,
-                      size: 18,
-                      color: expirySeconds.value > 0
-                          ? Colors.orange
-                          : Colors.red,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.all(20),
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Color(0xFFF8FAFC), Color(0xFFEEF2F7)],
+            ),
+            borderRadius: BorderRadius.circular(28),
+          ),
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(32),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Success Animation
+                  Container(
+                    width: 80,
+                    height: 80,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF10B981), Color(0xFF059669)],
+                      ),
+                      shape: BoxShape.circle,
                     ),
-                    const SizedBox(width: 6),
-                    Text(
-                      "Expires in: $_expiryLabel",
-                      style: TextStyle(
-                        fontWeight: FontWeight.w700,
-                        color: expirySeconds.value > 0
-                            ? Colors.orange
-                            : Colors.red,
+                    child: const Icon(
+                      Icons.check_rounded,
+                      color: Colors.white,
+                      size: 48,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Title
+                  const Text(
+                    "Cash Ready for Pickup",
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w900,
+                      color: Color(0xFF1F2937),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+
+                  // Subtitle
+                  Text(
+                    "Share this code with the receiver",
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[600],
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 28),
+
+                  // Pickup Code Card
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF1E88E5), Color(0xFF1565C0)],
+                      ),
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF1E88E5).withOpacity(0.3),
+                          blurRadius: 16,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      children: [
+                        Text(
+                          "Pickup Code",
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white.withOpacity(0.9),
+                            letterSpacing: 1.2,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Obx(
+                          () => Text(
+                            pickupCode.value.isEmpty ? "-" : pickupCode.value,
+                            style: const TextStyle(
+                              fontSize: 32,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 4,
+                              color: Colors.white,
+                              fontFamily: 'Courier',
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 18),
+
+                  // Expiry Timer
+                  Obx(
+                    () => Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      decoration: BoxDecoration(
+                        color: expirySeconds.value > 300
+                            ? const Color(0xFFECFDF5)
+                            : expirySeconds.value > 60
+                            ? const Color(0xFFFEF3C7)
+                            : const Color(0xFFFEE2E2),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: expirySeconds.value > 300
+                              ? const Color(0xA010B981)
+                              : expirySeconds.value > 60
+                              ? const Color(0xA0F59E0B)
+                              : const Color(0xA0EF4444),
+                          width: 1.5,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.schedule_rounded,
+                            size: 20,
+                            color: expirySeconds.value > 300
+                                ? const Color(0xFF10B981)
+                                : expirySeconds.value > 60
+                                ? const Color(0xFFF59E0B)
+                                : const Color(0xFFEF4444),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            "Expires in: $_expiryLabel",
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              color: expirySeconds.value > 300
+                                  ? const Color(0xFF10B981)
+                                  : expirySeconds.value > 60
+                                  ? const Color(0xFFF59E0B)
+                                  : const Color(0xFFEF4444),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ],
-                ),
-              ),
+                  ),
 
-              const SizedBox(height: 18),
+                  const SizedBox(height: 24),
 
-              // Actions row
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: pickupCode.value.isEmpty
-                          ? null
-                          : () async {
-                              await Clipboard.setData(
-                                ClipboardData(text: pickupCode.value),
-                              );
-                              Get.snackbar(
-                                "Copied",
-                                "Pickup code copied",
-                                backgroundColor: Colors.green,
-                                colorText: Colors.white,
-                              );
-                            },
-                      icon: const Icon(Icons.copy),
-                      label: const Text("Copy"),
+                  // Copy Button
+                  Obx(
+                    () => SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: pickupCode.value.isEmpty
+                            ? null
+                            : () async {
+                                await Clipboard.setData(
+                                  ClipboardData(text: pickupCode.value),
+                                );
+                                Get.snackbar(
+                                  "",
+                                  "Pickup code copied to clipboard",
+                                  backgroundColor: const Color(0xFF10B981),
+                                  colorText: Colors.white,
+                                  icon: const Icon(
+                                    Icons.check_circle,
+                                    color: Colors.white,
+                                  ),
+                                  borderRadius: 16,
+                                  margin: const EdgeInsets.all(16),
+                                  duration: const Duration(seconds: 2),
+                                );
+                              },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF1E88E5),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          elevation: 0,
+                        ),
+                        icon: const Icon(Icons.content_copy_rounded, size: 20),
+                        label: const Text(
+                          "Copy Code",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton.icon(
+
+                  const SizedBox(height: 12),
+
+                  // Share Button
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
                       onPressed: () {
                         _showShareDialog();
                       },
-                      icon: const Icon(Icons.share),
-                      label: const Text("Share"),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        side: const BorderSide(
+                          color: Color(0xFF1E88E5),
+                          width: 2,
+                        ),
+                      ),
+                      icon: const Icon(
+                        Icons.share_rounded,
+                        size: 20,
+                        color: Color(0xFF1E88E5),
+                      ),
+                      label: const Text(
+                        "Share Receipt",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF1E88E5),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Back Button
+                  SizedBox(
+                    width: double.infinity,
+                    child: TextButton(
+                      onPressed: () {
+                        _clear();
+                        Get.back();
+                        Get.back();
+                      },
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                      child: Text(
+                        "Back to Wallet",
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey[700],
+                        ),
+                      ),
                     ),
                   ),
                 ],
               ),
-
-              const SizedBox(height: 16),
-
-              ElevatedButton(
-                onPressed: () {
-                  _clear();
-                  Get.back();
-                  Get.back();
-                },
-                child: const Text("Back to Wallet"),
-              ),
-            ],
+            ),
           ),
         ),
       ),
@@ -386,37 +548,129 @@ class CashPickupController extends GetxController {
   }
 
   // =============================
-  // SHARE DIALOG
+  // SHARE DIALOG (REDESIGNED)
   // =============================
   void _showShareDialog() {
     Get.dialog(
       Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                "Share Pickup Receipt",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.all(20),
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Color(0xFFF8FAFC), Color(0xFFEEF2F7)],
+            ),
+            borderRadius: BorderRadius.circular(28),
+          ),
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(28),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Header Icon
+                  Container(
+                    width: 64,
+                    height: 64,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFFFF6B6B), Color(0xFFFF5252)],
+                      ),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.share_rounded,
+                      color: Colors.white,
+                      size: 32,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  const Text(
+                    "Share Receipt",
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w900,
+                      color: Color(0xFF1F2937),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+
+                  Text(
+                    "Choose how to send this receipt",
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.grey[600],
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Share Options
+                  _shareOptionButton(
+                    "email",
+                    Icons.email_rounded,
+                    "Email",
+                    "Send directly to receiver's email",
+                    const Color(0xFF3B82F6),
+                  ),
+                  const SizedBox(height: 12),
+
+                  _shareOptionButton(
+                    "pdf",
+                    Icons.picture_as_pdf_rounded,
+                    "PDF Document",
+                    "Download as PDF file",
+                    const Color(0xFFEF4444),
+                  ),
+                  const SizedBox(height: 12),
+
+                  _shareOptionButton(
+                    "image",
+                    Icons.image_rounded,
+                    "Image",
+                    "Share as PNG image",
+                    const Color(0xFF8B5CF6),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // Close Button
+                  SizedBox(
+                    width: double.infinity,
+                    child: TextButton(
+                      onPressed: () => Get.back(),
+                      child: Text(
+                        "Cancel",
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey[700],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 18),
-              _shareButton("email", Icons.email, "Email (auto receiver)"),
-              const SizedBox(height: 12),
-              _shareButton("pdf", Icons.picture_as_pdf, "PDF"),
-              const SizedBox(height: 12),
-              _shareButton("image", Icons.image, "Image"),
-            ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _shareButton(String type, IconData icon, String title) {
+  Widget _shareOptionButton(
+    String type,
+    IconData icon,
+    String title,
+    String subtitle,
+    Color color,
+  ) {
     return Obx(
-      () => InkWell(
+      () => GestureDetector(
         onTap: isSharing.value
             ? null
             : () async {
@@ -432,18 +686,80 @@ class CashPickupController extends GetxController {
 
                 isSharing.value = false;
               },
-        child: Opacity(
-          opacity: isSharing.value ? 0.6 : 1,
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: isSharing.value
+                  ? color.withOpacity(0.3)
+                  : Colors.grey[200]!,
+              width: 2,
+            ),
+            boxShadow: [
+              if (!isSharing.value)
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.04),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+            ],
+          ),
           child: Row(
             children: [
-              Icon(icon),
-              const SizedBox(width: 12),
-              Expanded(child: Text(title)),
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [color.withOpacity(0.2), color.withOpacity(0.1)],
+                  ),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, color: color, size: 28),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF1F2937),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey[600],
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
               if (isSharing.value)
                 const SizedBox(
-                  width: 14,
-                  height: 14,
-                  child: CircularProgressIndicator(strokeWidth: 2),
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.5,
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      Color(0xFF1E88E5),
+                    ),
+                  ),
+                )
+              else
+                Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  size: 16,
+                  color: Colors.grey[400],
                 ),
             ],
           ),
@@ -459,25 +775,48 @@ class CashPickupController extends GetxController {
     final receiverEmail = receiverEmailController.text.trim();
     final receiverPhoneText = receiverPhoneController.text.trim();
     final note = noteController.text.trim();
+    final formattedAmount = amount.value.toStringAsFixed(2);
+    final formattedFee = fee.value.toStringAsFixed(2);
+    final formattedTotal = total.value.toStringAsFixed(2);
+    final receiverName = receiverNameController.text.trim();
+
+    final noteSection = note.isNotEmpty ? '\n\nNote:\n$note' : '';
 
     return '''
-CashPilot – Cash Pickup Receipt
 
-Pickup Code: ${pickupCode.value}
-Amount: $currencySymbol${amount.value.toStringAsFixed(2)}
-Fee: $currencySymbol${fee.value.toStringAsFixed(2)}
-Total: $currencySymbol${total.value.toStringAsFixed(2)}
-Currency: ${selectedCurrency.value}
+                    CashPilot Cash Pickup Receipt
+                   --------------------------------------------
 
-Receiver Name: ${receiverNameController.text.trim()}
-Receiver Phone: ${receiverPhoneText.isEmpty ? "-" : receiverPhoneText}
-Receiver Email: ${receiverEmail.isEmpty ? "-" : receiverEmail}
+PICKUP CODE:
+---------------------
+${pickupCode.value}
 
-Expires In: $_expiryLabel
-Verify: $_verificationUrl
-${note.isEmpty ? "" : "\nNote: $note"}
 
-Thank you for using CashPilot 💙
+TRANSACTION DETAILS
+---------------------------------
+Amount:           $currencySymbol$formattedAmount
+Service Fee:      $currencySymbol$formattedFee
+
+Total Amount:     $currencySymbol$formattedTotal (${selectedCurrency.value})
+
+
+RECEIVER INFORMATION
+----------------------------------
+Name:             $receiverName
+Phone:            ${receiverPhoneText.isEmpty ? 'Not provided' : receiverPhoneText}
+Email:            ${receiverEmail.isEmpty ? 'Not provided' : receiverEmail}
+
+
+VALIDITY & VERIFICATION
+-----------------------------------
+Code Expires:     $_expiryLabel
+Verification:     $_verificationUrl$noteSection
+
+
+
+Thank you for using CashPilot!
+Visit: www.cashpilot.app
+
 ''';
   }
 
