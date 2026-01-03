@@ -11,6 +11,8 @@ import 'package:cashpilot/Bindings/LoginBinding.dart';
 import 'package:cashpilot/Bindings/MonthlyStatsBinding.dart';
 import 'package:cashpilot/Bindings/NotificationBinding.dart';
 import 'package:cashpilot/Bindings/OtpVerificationBinding.dart';
+import 'package:cashpilot/Bindings/PayEducationBinding.dart';
+import 'package:cashpilot/Bindings/PayGovermentBinding.dart';
 import 'package:cashpilot/Bindings/PayInternetBinding.dart';
 import 'package:cashpilot/Bindings/PayTelecomBinding.dart';
 import 'package:cashpilot/Bindings/PaymentBinding.dart';
@@ -23,6 +25,7 @@ import 'package:cashpilot/Bindings/TermsBinding.dart';
 import 'package:cashpilot/Routes/AppRoute.dart';
 import 'package:cashpilot/Views/AboutUs.dart';
 import 'package:cashpilot/Views/AddMoney.dart';
+import 'package:cashpilot/Views/ChatbotView.dart';
 import 'package:cashpilot/Views/ContactInfo.dart';
 import 'package:cashpilot/Views/ForgetPassword.dart';
 import 'package:cashpilot/Views/ForgetPasswordOtp.dart';
@@ -30,6 +33,8 @@ import 'package:cashpilot/Views/HelpCenterView.dart';
 import 'package:cashpilot/Views/MonthlyStatsPage.dart';
 import 'package:cashpilot/Views/NotificationsView.dart';
 import 'package:cashpilot/Views/OtpVerificationPage.dart';
+import 'package:cashpilot/Views/PayEducationView.dart';
+import 'package:cashpilot/Views/PayGovermentView.dart';
 import 'package:cashpilot/Views/PayInternetView.dart';
 import 'package:cashpilot/Views/PayTelecomView.dart';
 import 'package:cashpilot/Views/Payment.dart';
@@ -41,7 +46,6 @@ import 'package:cashpilot/Views/SendCashPickup.dart';
 import 'package:cashpilot/Views/SendMoney.dart';
 import 'package:cashpilot/Views/Service.dart';
 import 'package:cashpilot/Views/SettingsView.dart';
-import 'package:cashpilot/Views/Support/Chatbot.dart';
 import 'package:cashpilot/Views/TermsView.dart';
 import 'package:cashpilot/Views/TransferMoney.dart';
 import 'package:get/get.dart';
@@ -200,7 +204,7 @@ class AppPage {
 
     GetPage(
       name: '/chatbot',
-      page: () => ChatbotPage(),
+      page: () => ChatbotView(),
       binding: ChatbotBinding(),
     ),
 
@@ -215,5 +219,17 @@ class AppPage {
       page: () => const PayInternetView(),
       binding: PayInternetBinding(),
     ),
+
+    GetPage(
+      name: '/payGovernment',
+      page: () => const PayGovernmentView(),
+      binding: PayGovernmentBinding(),
+    ),
+
+    // GetPage(
+    //   name: '/payEducation',
+    //   page: () => const PayEducationView(),
+    //   binding: PayEducationBinding(),
+    // ),
   ];
 }

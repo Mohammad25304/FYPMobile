@@ -35,27 +35,39 @@ class PayTelecomController extends GetxController {
 
       await _api.payTelecom(
         provider: provider['name'],
+        provider_id: provider['id'],
         phone: phoneController.text,
         amount: double.parse(amountController.text),
         currency: selectedCurrency.value,
       );
 
+      // 🔥 CLEAR FIELDS AFTER SUCCESS
+      phoneController.clear();
+      amountController.clear();
+
       await walletController.fetchWalletData();
       await homeController.fetchDashboardData();
 
+      // ✅ SUCCESS SNACKBAR
       Get.snackbar(
-        'Success',
-        'Telecom payment completed',
+        'Payment Successful ✅',
+        'Your telecom recharge was completed successfully.',
+        snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.green,
         colorText: Colors.white,
+        margin: const EdgeInsets.all(16),
+        borderRadius: 14,
+        icon: const Icon(Icons.check_circle, color: Colors.white),
+        duration: const Duration(seconds: 3),
       );
-
-      Get.back();
     } catch (e) {
       Get.snackbar(
-        'Payment Failed',
+        'Payment Failed ❌',
         'Unable to complete payment',
         snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        margin: const EdgeInsets.all(16),
       );
     } finally {
       isLoading.value = false;

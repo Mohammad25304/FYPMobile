@@ -6,7 +6,7 @@ import 'package:cashpilot/Core/Network/DioClient.dart';
 import 'WalletController.dart';
 import 'HomeController.dart';
 
-class PayInternetController extends GetxController {
+class PayGovernmentController extends GetxController {
   final PaymentApi _api = PaymentApi();
   final Dio _dio = DioClient().getInstance();
 
@@ -15,8 +15,9 @@ class PayInternetController extends GetxController {
 
   late Map<String, dynamic> provider;
 
-  final accountController = TextEditingController();
+  final referenceController = TextEditingController();
   final amountController = TextEditingController();
+  final notesController = TextEditingController();
 
   final selectedCurrency = 'USD'.obs;
   final amount = 0.0.obs;
@@ -62,7 +63,7 @@ class PayInternetController extends GetxController {
       final response = await _dio.post(
         "fees/preview",
         data: {
-          "context": "bill_payment",
+          "context": "government_payment",
           "service_id": provider['id'],
           "currency": selectedCurrency.value,
           "amount": amount.value,
@@ -83,12 +84,12 @@ class PayInternetController extends GetxController {
   // VALIDATION
   // =============================
   String? validateInputs() {
-    if (accountController.text.trim().isEmpty) {
-      return 'Please enter your account number';
+    if (referenceController.text.trim().isEmpty) {
+      return 'Please enter your reference number';
     }
 
-    if (accountController.text.trim().length < 4) {
-      return 'Account number is too short';
+    if (referenceController.text.trim().length < 5) {
+      return 'Reference number is too short';
     }
 
     if (amount.value <= 0) {
@@ -96,14 +97,14 @@ class PayInternetController extends GetxController {
     }
 
     if (amount.value < 1) {
-      return 'Minimum amount is 1 ${selectedCurrency.value}';
+      return 'Minimum payment amount is 1 ${selectedCurrency.value}';
     }
 
     return null;
   }
 
   // =============================
-  // PAY INTERNET
+  // PAY GOVERNMENT
   // =============================
   Future<void> pay() async {
     // Validate inputs
@@ -126,16 +127,21 @@ class PayInternetController extends GetxController {
     try {
       isLoading.value = true;
 
-      await _api.payInternet(
+      await _api.payGovernment(
         provider: provider['name'],
-        accountNumber: accountController.text.trim(),
+        serviceId: provider['id'],
+        referenceNumber: referenceController.text.trim(),
         amount: amount.value,
         currency: selectedCurrency.value,
+        notes: notesController.text.trim().isEmpty
+            ? null
+            : notesController.text.trim(),
       );
 
       // Clear fields after success
-      accountController.clear();
+      referenceController.clear();
       amountController.clear();
+      notesController.clear();
 
       // Refresh data
       await walletController.refreshAll();
@@ -144,7 +150,7 @@ class PayInternetController extends GetxController {
       // Success message
       Get.snackbar(
         'Payment Successful ✅',
-        'Your internet bill payment was completed successfully.',
+        'Your government payment was completed successfully.',
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.green,
         colorText: Colors.white,
@@ -166,7 +172,9 @@ class PayInternetController extends GetxController {
         } else if (e.response?.statusCode == 402) {
           errorMessage = 'Insufficient balance in your wallet';
         } else if (e.response?.statusCode == 404) {
-          errorMessage = 'Service provider not found';
+          errorMessage = 'Service or reference number not found';
+        } else if (e.response?.statusCode == 422) {
+          errorMessage = 'Invalid reference number or amount';
         }
       }
 
@@ -188,8 +196,9 @@ class PayInternetController extends GetxController {
 
   @override
   void onClose() {
-    accountController.dispose();
+    referenceController.dispose();
     amountController.dispose();
+    notesController.dispose();
     super.onClose();
   }
 }

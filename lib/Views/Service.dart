@@ -327,6 +327,12 @@ class Service extends GetView<ServiceController> {
       case 'internet':
         Get.toNamed('/payInternet', arguments: provider);
         break;
+      case 'government':
+        Get.toNamed('/payGovernment', arguments: provider);
+        break;
+      case 'education':
+        Get.toNamed('/payEducation', arguments: provider);
+        break;
       default:
         Get.snackbar(
           "Coming Soon",

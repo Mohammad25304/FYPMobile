@@ -14,6 +14,7 @@ import 'package:cashpilot/Controllers/ServiceController.dart';
 import 'package:cashpilot/Controllers/WalletController.dart';
 import 'package:cashpilot/Controllers/DetailsController.dart';
 import 'package:cashpilot/Views/AboutUs.dart';
+import 'package:cashpilot/Views/ChatbotView.dart';
 import 'package:cashpilot/Views/ContactInfo.dart';
 import 'package:cashpilot/Views/DetailsView.dart';
 import 'package:cashpilot/Views/HelpCenterView.dart';
@@ -25,7 +26,6 @@ import 'package:cashpilot/Views/PrivacyView.dart';
 import 'package:cashpilot/Views/Profile.dart';
 import 'package:cashpilot/Views/Service.dart';
 import 'package:cashpilot/Views/SettingsView.dart';
-import 'package:cashpilot/Views/Support/Chatbot.dart';
 import 'package:cashpilot/Views/TermsView.dart';
 import 'package:cashpilot/Views/Wallet.dart';
 import 'package:flutter/material.dart';
@@ -146,7 +146,7 @@ class Details extends GetView<DetailsController> {
                           );
                         } else if (item.keyName == 'chatbot') {
                           Get.to(
-                            () => const ChatbotPage(),
+                            () => ChatbotView(),
                             binding: ChatbotBinding(),
                           );
                         } else {

@@ -1,73 +1,75 @@
 import 'package:get/get.dart';
-import 'package:webview_flutter/webview_flutter.dart';
-import 'package:flutter/material.dart';
+import 'package:dio/dio.dart';
+import '../Model/ChatMessage.dart';
+import '../Core/Network/DioClient.dart';
 
 class ChatbotController extends GetxController {
-  late final WebViewController webViewController;
+  final Dio _dio = DioClient().getInstance();
 
-  var isLoading = true.obs;
-  var hasError = false.obs;
+  var messages = <ChatMessage>[].obs;
+  var isTyping = false.obs;
 
   @override
   void onInit() {
     super.onInit();
-    _initWebView();
-  }
 
-  void _initWebView() {
-    webViewController = WebViewController()
-      ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..setBackgroundColor(const Color(0xFFFFFFFF))
-      ..setNavigationDelegate(
-        NavigationDelegate(
-          onPageStarted: (_) {
-            isLoading.value = true;
-            hasError.value = false;
-          },
-          onPageFinished: (_) {
-            isLoading.value = false;
-          },
-          onWebResourceError: (_) {
-            hasError.value = true;
-            isLoading.value = false;
-          },
-        ),
-      )
-      ..loadHtmlString(_chatlingHtml, baseUrl: 'https://chatling.ai');
-  }
+    final args = Get.arguments;
 
-  static const String _chatlingHtml = """
-<!DOCTYPE html>
-<html>
-<head>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-</head>
-<body>
+    messages.add(
+      ChatMessage(
+        message:
+            "Hi 👋 I’m the CashPilot Assistant. You can tap a question below or ask your own.",
+        isUser: false,
+      ),
+    );
 
-<script>
-  window.chtlConfig = {
-    chatbotId: "6412128358",
-    display: "fullscreen"
-  };
-</script>
-
-<script async
-        data-id="6412128358"
-        data-display="fullscreen"
-        id="chtl-script"
-        type="text/javascript"
-        src="https://chatling.ai/js/embed.js">
-</script>
-
-</body>
-</html>
-""";
-
-  Future<bool> onWillPop() async {
-    if (await webViewController.canGoBack()) {
-      await webViewController.goBack();
-      return false;
+    if (args != null && args['mode'] == 'faq') {
+      loadFaqs();
     }
-    return true;
+  }
+
+  Future<void> sendMessage(String text) async {
+    if (text.trim().isEmpty) return;
+
+    // Add user message
+    messages.add(ChatMessage(message: text, isUser: true));
+    isTyping.value = true;
+
+    try {
+      final response = await _dio.post(
+        'chatbot/message',
+        data: {'message': text},
+      );
+
+      messages.add(ChatMessage(message: response.data['reply'], isUser: false));
+    } catch (e) {
+      messages.add(
+        ChatMessage(
+          message:
+              "Sorry, I couldn't process your request right now. Please try again.",
+          isUser: false,
+        ),
+      );
+    } finally {
+      isTyping.value = false;
+    }
+  }
+
+  Future<void> loadFaqs() async {
+    isTyping.value = true;
+
+    try {
+      final response = await _dio.get('chatbot/faqs');
+
+      for (var faq in response.data['faqs']) {
+        messages.add(ChatMessage(message: "❓ ${faq['intent']}", isUser: false));
+      }
+    } catch (e) {
+      messages.add(
+        ChatMessage(message: "Unable to load FAQs right now.", isUser: false),
+      );
+    } finally {
+      isTyping.value = false;
+    }
   }
 }

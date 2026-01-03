@@ -1,9 +1,9 @@
+import 'package:cashpilot/Controllers/PayGovermentController.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../Controllers/PayInternetController.dart';
 
-class PayInternetView extends GetView<PayInternetController> {
-  const PayInternetView({super.key});
+class PayGovernmentView extends GetView<PayGovernmentController> {
+  const PayGovernmentView({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -65,7 +65,11 @@ class PayInternetView extends GetView<PayInternetController> {
               color: Colors.white.withOpacity(0.2),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(Icons.wifi, color: Colors.white, size: 32),
+            child: const Icon(
+              Icons.account_balance,
+              color: Colors.white,
+              size: 32,
+            ),
           ),
           const SizedBox(height: 12),
           Text(
@@ -78,7 +82,7 @@ class PayInternetView extends GetView<PayInternetController> {
           ),
           const SizedBox(height: 4),
           Text(
-            'Internet Bill Payment',
+            'Government Service Payment',
             style: TextStyle(
               color: Colors.white.withOpacity(0.8),
               fontSize: 13,
@@ -116,11 +120,11 @@ class PayInternetView extends GetView<PayInternetController> {
           ),
           const SizedBox(height: 20),
           _buildTextField(
-            controller: controller.accountController,
-            label: 'Account Number',
-            icon: Icons.account_circle,
+            controller: controller.referenceController,
+            label: 'Reference Number',
+            icon: Icons.confirmation_number,
             keyboardType: TextInputType.text,
-            hint: 'Enter your account number',
+            hint: 'Enter reference or file number',
           ),
           const SizedBox(height: 16),
           _buildCurrencyDropdown(),
@@ -135,6 +139,15 @@ class PayInternetView extends GetView<PayInternetController> {
               suffix: controller.selectedCurrency.value,
             ),
           ),
+          const SizedBox(height: 16),
+          _buildTextField(
+            controller: controller.notesController,
+            label: 'Notes (Optional)',
+            icon: Icons.note_alt,
+            keyboardType: TextInputType.text,
+            hint: 'Add any additional notes',
+            maxLines: 3,
+          ),
         ],
       ),
     );
@@ -147,6 +160,7 @@ class PayInternetView extends GetView<PayInternetController> {
     required TextInputType keyboardType,
     required String hint,
     String? suffix,
+    int maxLines = 1,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -163,6 +177,7 @@ class PayInternetView extends GetView<PayInternetController> {
         TextField(
           controller: controller,
           keyboardType: keyboardType,
+          maxLines: maxLines,
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: TextStyle(color: Colors.grey[400]),
@@ -186,9 +201,9 @@ class PayInternetView extends GetView<PayInternetController> {
             ),
             filled: true,
             fillColor: Colors.grey[50],
-            contentPadding: const EdgeInsets.symmetric(
+            contentPadding: EdgeInsets.symmetric(
               horizontal: 16,
-              vertical: 14,
+              vertical: maxLines > 1 ? 14 : 14,
             ),
           ),
         ),
@@ -297,7 +312,7 @@ class PayInternetView extends GetView<PayInternetController> {
             ),
             const SizedBox(height: 16),
             _buildFeeRow(
-              'Amount',
+              'Payment Amount',
               controller.amount.value,
               controller.selectedCurrency.value,
               false,

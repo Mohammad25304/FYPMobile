@@ -27,4 +27,6 @@ class AppRoute {
   static const String chatbot = '/chatbot';
   static const String payTelecom = '/payTelecom';
   static const String payInternet = '/payInternet';
+  static const String payGovernment = '/payGovernment';
+  static const String payEducation = '/payEducation';
 }
