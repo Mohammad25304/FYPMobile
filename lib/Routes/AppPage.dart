@@ -226,10 +226,10 @@ class AppPage {
       binding: PayGovernmentBinding(),
     ),
 
-    // GetPage(
-    //   name: '/payEducation',
-    //   page: () => const PayEducationView(),
-    //   binding: PayEducationBinding(),
-    // ),
+    GetPage(
+      name: '/payEducation',
+      page: () => const PayEducationView(),
+      binding: PayEducationBinding(),
+    ),
   ];
 }
