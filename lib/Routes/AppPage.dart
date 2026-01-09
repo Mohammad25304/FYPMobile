@@ -14,6 +14,7 @@ import 'package:cashpilot/Bindings/OtpVerificationBinding.dart';
 import 'package:cashpilot/Bindings/PayEducationBinding.dart';
 import 'package:cashpilot/Bindings/PayGovermentBinding.dart';
 import 'package:cashpilot/Bindings/PayInternetBinding.dart';
+import 'package:cashpilot/Bindings/PayStreamingBinding.dart';
 import 'package:cashpilot/Bindings/PayTelecomBinding.dart';
 import 'package:cashpilot/Bindings/PaymentBinding.dart';
 import 'package:cashpilot/Bindings/PrivacyBinding.dart';
@@ -36,6 +37,7 @@ import 'package:cashpilot/Views/OtpVerificationPage.dart';
 import 'package:cashpilot/Views/PayEducationView.dart';
 import 'package:cashpilot/Views/PayGovermentView.dart';
 import 'package:cashpilot/Views/PayInternetView.dart';
+import 'package:cashpilot/Views/PayStreamingView.dart';
 import 'package:cashpilot/Views/PayTelecomView.dart';
 import 'package:cashpilot/Views/Payment.dart';
 import 'package:cashpilot/Views/PrivacyView.dart';
@@ -230,6 +232,12 @@ class AppPage {
       name: '/payEducation',
       page: () => const PayEducationView(),
       binding: PayEducationBinding(),
+    ),
+
+    GetPage(
+      name: '/payStreaming',
+      page: () => const PayStreamingView(),
+      binding: PayStreamingBinding(),
     ),
   ];
 }

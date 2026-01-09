@@ -29,4 +29,5 @@ class AppRoute {
   static const String payInternet = '/payInternet';
   static const String payGovernment = '/payGovernment';
   static const String payEducation = '/payEducation';
+  static const String payStreaming = '/payStreaming';
 }

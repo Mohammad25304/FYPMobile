@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../Controllers/PayTelecomController.dart';
+import 'package:flutter/services.dart'; // ✅ ADD THIS IMPORT
 
 class PayTelecomView extends GetView<PayTelecomController> {
   const PayTelecomView({super.key});
@@ -155,6 +156,13 @@ class PayTelecomView extends GetView<PayTelecomController> {
         TextField(
           controller: controller,
           keyboardType: keyboardType,
+          inputFormatters: keyboardType == TextInputType.number
+              ? [
+                  FilteringTextInputFormatter.allow(
+                    RegExp(r'^\d+\.?\d{0,2}'),
+                  ), // ✅ ONLY NUMBERS
+                ]
+              : null,
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: TextStyle(color: Colors.grey[400]),
@@ -192,11 +200,8 @@ class PayTelecomView extends GetView<PayTelecomController> {
     final countryData = {
       'Lebanon': {'+961': '🇱🇧'},
       'Europe': {'+44': '🇬🇧', '+33': '🇫🇷', '+49': '🇩🇪', '+39': '🇮🇹'},
-      'America': {'+1': '🇺🇸', '+1': '🇨🇦'},
+      'America': {'+1': '🇺🇸'},
     };
-
-    final selectedCountry = 'Lebanon'.obs;
-    final selectedCode = '+961'.obs;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -221,7 +226,7 @@ class PayTelecomView extends GetView<PayTelecomController> {
                     border: Border.all(color: Colors.grey[300]!),
                   ),
                   child: DropdownButtonFormField<String>(
-                    value: selectedCountry.value,
+                    value: controller.selectedCountry.value, // ✅ USE CONTROLLER
                     decoration: InputDecoration(
                       prefixIcon: const Icon(
                         Icons.public,
@@ -245,8 +250,12 @@ class PayTelecomView extends GetView<PayTelecomController> {
                         .toList(),
                     onChanged: (value) {
                       if (value != null) {
-                        selectedCountry.value = value;
-                        selectedCode.value = countryData[value]!.keys.first;
+                        controller.selectedCountry.value =
+                            value; // ✅ UPDATE CONTROLLER
+                        controller.selectedCountryCode.value =
+                            countryData[value]!
+                                .keys
+                                .first; // ✅ UPDATE CONTROLLER
                       }
                     },
                     isExpanded: true,
@@ -262,7 +271,9 @@ class PayTelecomView extends GetView<PayTelecomController> {
                     border: Border.all(color: Colors.grey[300]!),
                   ),
                   child: DropdownButtonFormField<String>(
-                    value: selectedCode.value,
+                    value: controller
+                        .selectedCountryCode
+                        .value, // ✅ USE CONTROLLER
                     decoration: InputDecoration(
                       border: InputBorder.none,
                       contentPadding: const EdgeInsets.symmetric(
@@ -272,7 +283,8 @@ class PayTelecomView extends GetView<PayTelecomController> {
                       filled: true,
                       fillColor: Colors.grey[50],
                     ),
-                    items: countryData[selectedCountry.value]!.entries
+                    items: countryData[controller.selectedCountry.value]!
+                        .entries
                         .map(
                           (entry) => DropdownMenuItem(
                             value: entry.key,
@@ -282,7 +294,8 @@ class PayTelecomView extends GetView<PayTelecomController> {
                         .toList(),
                     onChanged: (value) {
                       if (value != null) {
-                        selectedCode.value = value;
+                        controller.selectedCountryCode.value =
+                            value; // ✅ UPDATE CONTROLLER
                       }
                     },
                     isExpanded: true,
@@ -296,6 +309,9 @@ class PayTelecomView extends GetView<PayTelecomController> {
         TextField(
           controller: controller.phoneController,
           keyboardType: TextInputType.phone,
+          inputFormatters: [
+            FilteringTextInputFormatter.digitsOnly, // ✅ ONLY DIGITS
+          ],
           decoration: InputDecoration(
             hintText: 'Enter phone number',
             hintStyle: TextStyle(color: Colors.grey[400]),

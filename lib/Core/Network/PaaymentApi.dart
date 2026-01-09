@@ -7,28 +7,31 @@ class PaymentApi {
   // =============================
   // TELECOM RECHARGE
   // =============================
-  Future<Map<String, dynamic>> payTelecom({
+  Future<void> payTelecom({
     required String provider,
-    required int provider_id,
+    required String providerCode, // ✅ CHANGE TO CODE
     required String phone,
     required double amount,
     required String currency,
   }) async {
     try {
       final response = await _dio.post(
-        'payments/telecom',
+        '/payments/telecom',
         data: {
           'provider': provider,
-          'provider_id': provider_id,
+          'provider_code': providerCode, // ✅ SEND CODE INSTEAD
           'phone': phone,
           'amount': amount,
           'currency': currency,
         },
       );
 
-      return response.data;
-    } catch (e) {
-      rethrow;
+      if (response.statusCode != 200) {
+        throw Exception('Payment failed');
+      }
+    } on DioException catch (e) {
+      final message = e.response?.data['message'] ?? 'Telecom payment failed';
+      throw Exception(message);
     }
   }
 
@@ -76,6 +79,41 @@ class PaymentApi {
           'provider': provider,
           'service_id': serviceId,
           'reference_number': referenceNumber,
+          'amount': amount,
+          'currency': currency,
+          if (notes != null && notes.isNotEmpty) 'notes': notes,
+        },
+      );
+
+      return response.data;
+    } catch (e) {
+      rethrow;
+    }
+  }
+  // Add this method to your existing PaymentApi class
+
+  // =============================
+  // STREAMING SUBSCRIPTION PAYMENT
+  // =============================
+  Future<Map<String, dynamic>> payStreaming({
+    required String provider,
+    required int serviceId,
+    required String email,
+    required String plan, // 'basic', 'standard', 'premium'
+    required int duration, // 1, 3, 6, 12 months
+    required double amount,
+    required String currency,
+    String? notes,
+  }) async {
+    try {
+      final response = await _dio.post(
+        'payments/streaming',
+        data: {
+          'provider': provider,
+          'service_id': serviceId,
+          'email': email,
+          'plan': plan,
+          'duration': duration,
           'amount': amount,
           'currency': currency,
           if (notes != null && notes.isNotEmpty) 'notes': notes,

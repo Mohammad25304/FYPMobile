@@ -333,6 +333,8 @@ class Service extends GetView<ServiceController> {
       case 'education':
         Get.toNamed('/payEducation', arguments: provider);
         break;
+      case 'streaming':
+        Get.toNamed('/payStreaming', arguments: provider);
       default:
         Get.snackbar(
           "Coming Soon",
