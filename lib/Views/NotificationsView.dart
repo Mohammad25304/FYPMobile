@@ -524,11 +524,8 @@ class NotificationsView extends StatelessWidget {
         leading: IconButton(
           icon: Container(
             padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Icon(Icons.arrow_back_ios_new_rounded, size: 18),
+
+            child: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
           ),
           onPressed: () => Get.back(),
         ),

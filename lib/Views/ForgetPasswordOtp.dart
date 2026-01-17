@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:flutter/services.dart';
 import 'package:cashpilot/Controllers/ForgetPasswordController.dart';
 
 class ForgetPasswordOTP extends GetView<ForgetPasswordController> {
@@ -41,6 +42,7 @@ class ForgetPasswordOTP extends GetView<ForgetPasswordController> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    // Icon
                     Container(
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
@@ -54,6 +56,8 @@ class ForgetPasswordOTP extends GetView<ForgetPasswordController> {
                       ),
                     ),
                     const SizedBox(height: 24),
+
+                    // Title
                     const Text(
                       'Verify OTP',
                       textAlign: TextAlign.left,
@@ -64,6 +68,8 @@ class ForgetPasswordOTP extends GetView<ForgetPasswordController> {
                       ),
                     ),
                     const SizedBox(height: 8),
+
+                    // Subtitle
                     Obx(
                       () => Text(
                         'Enter the OTP sent to ${controller.userEmail.value}',
@@ -71,41 +77,67 @@ class ForgetPasswordOTP extends GetView<ForgetPasswordController> {
                         style: TextStyle(fontSize: 14, color: Colors.grey[700]),
                       ),
                     ),
+
                     const SizedBox(height: 32),
-                    TextField(
-                      controller: controller.otpController,
-                      keyboardType: TextInputType.number,
-                      maxLength: 6,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontSize: 24,
-                        letterSpacing: 8,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      decoration: InputDecoration(
-                        labelText: 'OTP Code',
-                        hintText: '000000',
-                        counterText: '',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.grey[300]!),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.grey[300]!),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(
-                            color: Color(0xFF1E88E5),
-                            width: 2,
+
+                    // OTP Fields
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: List.generate(6, (index) {
+                        return SizedBox(
+                          width: 48,
+                          height: 55,
+                          child: TextField(
+                            controller: controller.otpControllers[index],
+                            keyboardType: TextInputType.number,
+                            maxLength: 1,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly,
+                            ],
+                            decoration: InputDecoration(
+                              counterText: "",
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(
+                                  color: Colors.grey[300]!,
+                                ),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(
+                                  color: Colors.grey[300]!,
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: const BorderSide(
+                                  color: Color(0xFF1E88E5),
+                                  width: 2,
+                                ),
+                              ),
+                              filled: true,
+                              fillColor: Colors.grey[50],
+                            ),
+                            onChanged: (value) {
+                              if (value.isNotEmpty && index < 5) {
+                                FocusScope.of(context).nextFocus();
+                              } else if (value.isEmpty && index > 0) {
+                                FocusScope.of(context).previousFocus();
+                              }
+                            },
                           ),
-                        ),
-                        filled: true,
-                        fillColor: Colors.grey[50],
-                      ),
+                        );
+                      }),
                     ),
+
                     const SizedBox(height: 24),
+
+                    // VERIFY BUTTON
                     Obx(
                       () => ElevatedButton(
                         onPressed: controller.isLoading.value
@@ -140,7 +172,10 @@ class ForgetPasswordOTP extends GetView<ForgetPasswordController> {
                               ),
                       ),
                     ),
+
                     const SizedBox(height: 12),
+
+                    // RESEND OTP
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [

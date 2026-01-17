@@ -23,6 +23,7 @@ class NotificationController extends GetxController {
       isLoading.value = true;
       final response = await _api.getNotifications();
       notifications.value = response.data;
+      update(); // ✅ Notify GetBuilder listeners
     } catch (e) {
       Get.snackbar('Error', 'Failed to load notifications');
     } finally {
@@ -32,18 +33,21 @@ class NotificationController extends GetxController {
 
   Future<void> markAsRead(String id) async {
     await _api.markAsRead(id);
-    fetchNotifications();
+    await fetchNotifications();
+    update(); // ✅ Notify GetBuilder listeners
   }
 
   Future<void> clearAll() async {
     await _api.clearAll();
     notifications.clear();
+    update(); // ✅ Notify GetBuilder listeners
   }
 
   Future<void> deleteNotification(String id) async {
     try {
       await _api.deleteOne(id);
       notifications.removeWhere((n) => n['id'] == id);
+      update(); // ✅ Notify GetBuilder listeners
     } catch (_) {
       Get.snackbar('Error', 'Failed to delete notification');
     }

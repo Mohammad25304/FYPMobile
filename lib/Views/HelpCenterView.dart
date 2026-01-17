@@ -31,6 +31,7 @@ class HelpCenterView extends GetView<HelpCenterController> {
           icon: const Icon(
             Icons.arrow_back_ios_new_rounded,
             color: Colors.white,
+            size: 20,
           ),
           onPressed: () => Get.back(),
         ),

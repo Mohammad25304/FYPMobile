@@ -23,7 +23,10 @@ class Payment extends GetView<PaymentController> {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
-        title: const Text("Payment History"),
+        title: const Text(
+          "Payment History",
+          style: TextStyle(color: Color(0xFFF5F7FA)),
+        ),
         backgroundColor: const Color(0xFF1E88E5),
         elevation: 0,
         centerTitle: true,

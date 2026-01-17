@@ -86,27 +86,11 @@ class HomeController extends GetxController {
     _initFirebaseForegroundListener();
   }
 
-  void _listenToFirebase() {
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      final title = message.notification?.title ?? 'Notification';
-      final body = message.notification?.body ?? '';
-
-      Get.snackbar(
-        title,
-        body,
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.black87,
-        colorText: Colors.white,
-        duration: const Duration(seconds: 4),
-      );
-    });
-  }
-
   @override
   void onReady() {
     super.onReady();
+
     fetchDashboardData();
-    _initFirebaseForegroundListener();
   }
 
   // Helper to get current balance based on selected currency
@@ -172,7 +156,6 @@ class HomeController extends GetxController {
         selectedCurrency.value = wallet['default_currency'];
       }
 
-      // Stats
       // Stats
       final stats = wallet['stats'] ?? {};
       final income = stats['income'] ?? {};

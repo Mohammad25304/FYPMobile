@@ -10,8 +10,12 @@ class PayInternetController extends GetxController {
   final PaymentApi _api = PaymentApi();
   final Dio _dio = DioClient().getInstance();
 
-  final WalletController walletController = Get.put(WalletController());
-  final HomeController homeController = Get.find();
+  final WalletController walletController = Get.isRegistered<WalletController>()
+      ? Get.find<WalletController>()
+      : Get.put(WalletController());
+  final HomeController homeController = Get.isRegistered<HomeController>()
+      ? Get.find<HomeController>()
+      : Get.put(HomeController());
 
   late Map<String, dynamic> provider;
 

@@ -54,12 +54,20 @@ class SendCashPickup extends GetView<CashPickupController> {
       ),
       title: const Text(
         "Send Cash (Pickup)",
-        style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
+        style: TextStyle(
+          fontSize: 22,
+          fontWeight: FontWeight.w800,
+          color: Color(0xFFF5F7FA),
+        ),
       ),
       centerTitle: true,
       leading: IconButton(
         onPressed: () => Get.back(),
-        icon: const Icon(Icons.arrow_back, color: Colors.white),
+        icon: const Icon(
+          Icons.arrow_back_ios_new_rounded,
+          size: 20,
+          color: Colors.white,
+        ),
       ),
     );
   }

@@ -57,12 +57,20 @@ class AddMoney extends GetView<AddMoneyController> {
       elevation: 0,
       backgroundColor: const Color(0xFF1E88E5),
       leading: IconButton(
-        icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+        icon: const Icon(
+          Icons.arrow_back_ios_new_rounded,
+          size: 20,
+          color: Colors.white,
+        ),
         onPressed: () => Get.back(),
       ),
       title: const Text(
         "Receive Cash",
-        style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+        style: TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.w600,
+          color: Color(0xFFF5F7FA),
+        ),
       ),
       centerTitle: true,
     );

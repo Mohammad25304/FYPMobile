@@ -44,6 +44,8 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
+      debugShowCheckedModeBanner: false,
+
       title: 'CashPilot',
       theme: ThemeData(primarySwatch: Colors.lightBlue, useMaterial3: true),
       initialRoute: AppRoute.register,

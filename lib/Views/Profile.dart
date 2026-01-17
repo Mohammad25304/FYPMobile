@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:cashpilot/Controllers/ProfileController.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -6,8 +8,8 @@ class Profile extends GetView<ProfileController> {
   const Profile({super.key});
 
   // Modern Color Palette
-  static const Color primaryBlue = Color(0xFF2563EB);
-  static const Color secondaryBlue = Color(0xFF1E40AF);
+  static const Color primaryBlue = Color(0xFF1E88E5);
+  static const Color secondaryBlue = Color(0xFF1E88E5);
   static const Color backgroundGray = Color(0xFFF8FAFC);
   static const Color textDark = Color(0xFF0F172A);
   static const Color textLight = Color(0xFF64748B);
@@ -50,13 +52,13 @@ class Profile extends GetView<ProfileController> {
     return Scaffold(
       backgroundColor: backgroundGray,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+        backgroundColor: primaryBlue, // ✅ blue like Wallet
         elevation: 0,
         centerTitle: true,
         title: const Text(
           'My Profile',
           style: TextStyle(
-            color: textDark,
+            color: Colors.white, // ✅ white text
             fontWeight: FontWeight.w800,
             fontSize: 20,
           ),
@@ -64,12 +66,13 @@ class Profile extends GetView<ProfileController> {
         leading: IconButton(
           icon: const Icon(
             Icons.arrow_back_ios_new_rounded,
-            color: textDark,
+            color: Colors.white, // ✅ white back icon
             size: 20,
           ),
           onPressed: () => Get.back(),
         ),
       ),
+
       body: SafeArea(
         child: Obx(
           () => controller.isLoading.value
@@ -372,7 +375,7 @@ class Profile extends GetView<ProfileController> {
                   child: const Icon(
                     Icons.lock_reset_rounded,
                     size: 22,
-                    color: Color(0xFF4F46E5),
+                    color: Color(0xFF1E88E5),
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -434,6 +437,8 @@ class Profile extends GetView<ProfileController> {
 
   Widget _documentCard(String title, String url, IconData icon) {
     final bool hasDoc = url.isNotEmpty;
+    final RxBool reveal = false.obs;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -443,21 +448,58 @@ class Profile extends GetView<ProfileController> {
       ),
       child: Row(
         children: [
-          Container(
-            width: 50,
-            height: 50,
-            decoration: BoxDecoration(
-              color: backgroundGray,
-              borderRadius: BorderRadius.circular(12),
-              image: hasDoc
-                  ? DecorationImage(image: NetworkImage(url), fit: BoxFit.cover)
-                  : null,
+          // IMAGE + BLUR
+          Obx(
+            () => GestureDetector(
+              onLongPressStart: hasDoc ? (_) => reveal.value = true : null,
+              onLongPressEnd: hasDoc ? (_) => reveal.value = false : null,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Container(
+                      width: 50,
+                      height: 50,
+                      decoration: BoxDecoration(
+                        color: backgroundGray,
+                        image: hasDoc
+                            ? DecorationImage(
+                                image: NetworkImage(url),
+                                fit: BoxFit.cover,
+                              )
+                            : null,
+                      ),
+                      child: !hasDoc
+                          ? Icon(icon, color: textLight.withOpacity(0.5))
+                          : null,
+                    ),
+
+                    // 🔒 BLUR LAYER
+                    if (hasDoc && !reveal.value)
+                      Positioned.fill(
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                          child: Container(
+                            color: Colors.black.withOpacity(0.15),
+                            alignment: Alignment.center,
+                            child: const Icon(
+                              Icons.lock_rounded,
+                              color: Colors.white,
+                              size: 18,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
             ),
-            child: !hasDoc
-                ? Icon(icon, color: textLight.withOpacity(0.5))
-                : null,
           ),
+
           const SizedBox(width: 16),
+
+          // TEXT
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -472,7 +514,7 @@ class Profile extends GetView<ProfileController> {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  hasDoc ? 'Document uploaded' : 'Not uploaded yet',
+                  hasDoc ? 'Hold to view securely' : 'Not uploaded yet',
                   style: TextStyle(
                     fontSize: 12,
                     color: hasDoc ? successGreen : warningOrange,
@@ -482,18 +524,12 @@ class Profile extends GetView<ProfileController> {
               ],
             ),
           ),
-          if (hasDoc)
-            const Icon(
-              Icons.check_circle_rounded,
-              color: successGreen,
-              size: 20,
-            )
-          else
-            const Icon(
-              Icons.error_outline_rounded,
-              color: warningOrange,
-              size: 20,
-            ),
+
+          Icon(
+            hasDoc ? Icons.verified_rounded : Icons.error_outline_rounded,
+            color: hasDoc ? successGreen : warningOrange,
+            size: 20,
+          ),
         ],
       ),
     );

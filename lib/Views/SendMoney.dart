@@ -55,7 +55,11 @@ class SendMoney extends GetView<SendMoneyController> {
       ),
       title: const Text(
         "Send Money",
-        style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
+        style: TextStyle(
+          fontSize: 22,
+          fontWeight: FontWeight.w800,
+          color: Color(0xFFF5F7FA),
+        ),
       ),
       centerTitle: true,
       leading: Padding(
@@ -64,11 +68,11 @@ class SendMoney extends GetView<SendMoneyController> {
           onPressed: () => Get.back(),
           icon: Container(
             padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              shape: BoxShape.circle,
+            child: const Icon(
+              Icons.arrow_back_ios_new_rounded,
+              size: 20,
+              color: Colors.white,
             ),
-            child: const Icon(Icons.arrow_back, color: Colors.white),
           ),
         ),
       ),

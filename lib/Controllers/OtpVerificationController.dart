@@ -47,7 +47,7 @@ class OtpVerificationController extends GetxController {
         barrierDismissible: false,
       );
 
-      final dio = Dio(BaseOptions(baseUrl: "http://192.168.1.50:8000/api/"));
+      final dio = Dio(BaseOptions(baseUrl: "http://192.168.98.86:8000/api/"));
 
       final response = await dio.post(
         "verify-otp",
@@ -84,7 +84,7 @@ class OtpVerificationController extends GetxController {
   Future<void> resendOtp() async {
     if (!canResend.value) return;
 
-    final dio = Dio(BaseOptions(baseUrl: "http://192.168.1.50:8000/api/"));
+    final dio = Dio(BaseOptions(baseUrl: "http://192.168.98.86:8000/api/"));
 
     try {
       final response = await dio.post("resend-otp", data: {"email": email});

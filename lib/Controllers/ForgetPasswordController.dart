@@ -10,11 +10,11 @@ class ForgetPasswordController extends GetxController {
   final Dio dio = Dio();
 
   // ✅ Update this to your actual backend IP
-  final String baseUrl = 'http://192.168.1.50:8000/api';
+  final String baseUrl = 'http://192.168.1.68:8000/api';
 
   // Text Controllers
   late TextEditingController emailController;
-  late TextEditingController otpController;
+  late List<TextEditingController> otpControllers; // Changed to list
   late TextEditingController passwordController;
   late TextEditingController confirmPasswordController;
 
@@ -28,7 +28,8 @@ class ForgetPasswordController extends GetxController {
   void onInit() {
     super.onInit();
     emailController = TextEditingController();
-    otpController = TextEditingController();
+    // Initialize 6 OTP controllers
+    otpControllers = List.generate(6, (index) => TextEditingController());
     passwordController = TextEditingController();
     confirmPasswordController = TextEditingController();
 
@@ -44,10 +45,18 @@ class ForgetPasswordController extends GetxController {
   @override
   void onClose() {
     emailController.dispose();
-    otpController.dispose();
+    // Dispose all OTP controllers
+    for (var controller in otpControllers) {
+      controller.dispose();
+    }
     passwordController.dispose();
     confirmPasswordController.dispose();
     super.onClose();
+  }
+
+  // Helper method to get complete OTP
+  String getOtpCode() {
+    return otpControllers.map((controller) => controller.text).join();
   }
 
   // =====================================================
@@ -90,7 +99,6 @@ class ForgetPasswordController extends GetxController {
       // Navigate to OTP screen after a short delay
       await Future.delayed(const Duration(milliseconds: 800));
       debugPrint('🚀 Attempting navigation to OTP screen');
-      // Use Get.to() instead of Get.toNamed() for safer navigation
       Get.to(
         () => const ForgetPasswordOTP(),
         binding: ForgetPasswordOTPBinding(),
@@ -135,10 +143,12 @@ class ForgetPasswordController extends GetxController {
   // STEP 2: VERIFY OTP
   // =====================================================
   Future<void> verifyOtp() async {
-    if (otpController.text.trim().isEmpty) {
+    String otpCode = getOtpCode();
+
+    if (otpCode.trim().isEmpty || otpCode.length != 6) {
       Get.snackbar(
         'Error',
-        'Please enter the OTP',
+        'Please enter the complete 6-digit OTP',
         backgroundColor: Colors.red,
         colorText: Colors.white,
         snackPosition: SnackPosition.BOTTOM,
@@ -149,11 +159,11 @@ class ForgetPasswordController extends GetxController {
     isLoading.value = true;
     try {
       debugPrint('🔄 Verifying OTP for: ${userEmail.value}');
-      debugPrint('📡 OTP Code: ${otpController.text}');
+      debugPrint('📡 OTP Code: $otpCode');
 
       final response = await dio.post(
         '$baseUrl/verify-password-reset-otp',
-        data: {'email': userEmail.value, 'otp_code': otpController.text.trim()},
+        data: {'email': userEmail.value, 'otp_code': otpCode},
       );
 
       debugPrint('✅ Response: ${response.statusCode} - ${response.data}');
@@ -321,6 +331,11 @@ class ForgetPasswordController extends GetxController {
 
       debugPrint('✅ Response: ${response.statusCode}');
 
+      // Clear OTP fields
+      for (var controller in otpControllers) {
+        controller.clear();
+      }
+
       Get.snackbar(
         'Success',
         'New OTP sent to your email',
@@ -366,13 +381,13 @@ class ForgetPasswordController extends GetxController {
   }
 
   void cleanupAfterReset() {
-    // Only clear the values, don't dispose
     emailController.clear();
-    otpController.clear();
+    for (var controller in otpControllers) {
+      controller.clear();
+    }
     passwordController.clear();
     confirmPasswordController.clear();
     resetToken.value = '';
     userEmail.value = '';
-    // Do NOT dispose here - they're still needed for the next forgot password flow
   }
 }

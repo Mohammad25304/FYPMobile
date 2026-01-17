@@ -15,35 +15,43 @@ class MonthlyStatsPage extends StatelessWidget {
       backgroundColor: const Color(0xFFF8F9FE),
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: Colors.transparent,
+        backgroundColor: const Color(0xFF1E88E5), // Wallet blue
+        centerTitle: true,
         title: const Text(
           'Monthly Statistics',
           style: TextStyle(
-            color: Color(0xFF1E293B),
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
+            color: Colors.white,
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
           ),
+        ),
+        leading: IconButton(
+          icon: const Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: Colors.white,
+            size: 20,
+          ),
+          onPressed: () => Get.back(),
         ),
         actions: [
           // ================= CURRENCY SELECT =================
           Container(
             margin: const EdgeInsets.only(right: 8, top: 8, bottom: 8),
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 12),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: Colors.white.withOpacity(0.15),
               borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, 2),
-                ),
-              ],
             ),
             child: Obx(
               () => DropdownButton<String>(
                 value: controller.selectedCurrency.value,
                 underline: const SizedBox(),
+                dropdownColor: Colors.white,
+                iconEnabledColor: Colors.white,
+                style: const TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.w600,
+                ),
                 items: const [
                   DropdownMenuItem(value: 'USD', child: Text('USD')),
                   DropdownMenuItem(value: 'EUR', child: Text('EUR')),
@@ -55,7 +63,7 @@ class MonthlyStatsPage extends StatelessWidget {
           ),
 
           IconButton(
-            icon: const Icon(Icons.download_rounded, color: Color(0xFF6366F1)),
+            icon: const Icon(Icons.download_rounded, color: Colors.white),
             onPressed: () {
               Get.bottomSheet(
                 Container(
@@ -311,7 +319,7 @@ class MonthlyStatsPage extends StatelessWidget {
                 decoration: BoxDecoration(
                   gradient: isSelected
                       ? const LinearGradient(
-                          colors: [Color(0xFF6366F1), Color(0xFF4F46E5)],
+                          colors: [Color(0xFF1E88E5), Color(0xFF1E88E5)],
                         )
                       : null,
                   color: isSelected ? null : Colors.white,
@@ -319,7 +327,7 @@ class MonthlyStatsPage extends StatelessWidget {
                   boxShadow: [
                     BoxShadow(
                       color: isSelected
-                          ? const Color(0xFF6366F1).withOpacity(0.3)
+                          ? const Color(0xFF1E88E5).withOpacity(0.3)
                           : Colors.black.withOpacity(0.04),
                       blurRadius: isSelected ? 12 : 8,
                       offset: Offset(0, isSelected ? 4 : 2),

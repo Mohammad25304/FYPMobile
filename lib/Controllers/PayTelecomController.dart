@@ -11,7 +11,7 @@ class PayTelecomController extends GetxController {
   final selectedCountry = 'Lebanon'.obs; // ✅ ADD THIS
 
   final WalletController walletController = Get.put(WalletController());
-  final HomeController homeController = Get.put(HomeController());
+  final HomeController homeController = Get.find();
 
   late Map<String, dynamic> provider;
 

@@ -10,6 +10,7 @@ import 'package:cashpilot/Controllers/WalletController.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:cashpilot/Controllers/HomeController.dart';
+import 'package:cashpilot/Controllers/NotificationController.dart';
 
 class Home extends GetView<HomeController> {
   const Home({super.key});
@@ -61,20 +62,110 @@ class Home extends GetView<HomeController> {
           ),
         ),
         actions: [
+          // Notification Bell with Badge
           Container(
             margin: const EdgeInsets.only(right: 8),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              shape: BoxShape.circle,
-            ),
-            child: IconButton(
-              onPressed: () {
-                Get.toNamed('/notification');
-              },
-              icon: const Icon(
-                Icons.notifications_outlined,
-                color: Colors.white,
-              ),
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.white.withOpacity(0.25),
+                        Colors.white.withOpacity(0.15),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(25),
+                      onTap: () {
+                        // Ensure NotificationController is initialized before navigation
+                        if (!Get.isRegistered<NotificationController>()) {
+                          Get.put(NotificationController());
+                        }
+                        Get.toNamed('/notification');
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        child: const Icon(
+                          Icons.notifications_rounded,
+                          color: Colors.white,
+                          size: 24,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                // Enhanced Notification Badge
+                Positioned(
+                  right: -2,
+                  top: -2,
+                  child: GetBuilder<NotificationController>(
+                    init: NotificationController(),
+                    builder: (notifController) {
+                      final unreadCount = notifController.unreadCount;
+
+                      if (unreadCount == 0) {
+                        return const SizedBox.shrink();
+                      }
+
+                      return Container(
+                        padding: EdgeInsets.all(unreadCount > 9 ? 4 : 5),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFFFF5252), Color(0xFFEF4444)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: const Color(0xFF1E88E5),
+                            width: 2.5,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFFEF4444).withOpacity(0.6),
+                              blurRadius: 8,
+                              spreadRadius: 1,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        constraints: BoxConstraints(
+                          minWidth: unreadCount > 9 ? 22 : 20,
+                          minHeight: unreadCount > 9 ? 22 : 20,
+                        ),
+                        child: Center(
+                          child: Text(
+                            unreadCount > 99 ? '99+' : '$unreadCount',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w900,
+                              height: 1,
+                              letterSpacing: -0.5,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
             ),
           ),
           Container(

@@ -16,21 +16,10 @@ class TransferMoney extends GetView<TransferMoneyController> {
         leading: IconButton(
           onPressed: () => Get.back(),
           icon: Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
             child: const Icon(
-              Icons.arrow_back_rounded,
-              color: Color(0xFF1E293B),
+              Icons.arrow_back_ios_new_rounded,
+              size: 20,
+              color: Colors.white,
             ),
           ),
         ),
@@ -44,7 +33,7 @@ class TransferMoney extends GetView<TransferMoneyController> {
           ),
         ),
         title: const Text(
-          'Transfer Between Accounts',
+          'Exchange Currency',
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.w700,
@@ -677,7 +666,7 @@ class TransferMoney extends GetView<TransferMoneyController> {
                 ),
                 IconButton(
                   onPressed: () => Get.back(),
-                  icon: const Icon(Icons.close_rounded),
+                  icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
                 ),
               ],
             ),

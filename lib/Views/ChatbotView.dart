@@ -15,15 +15,27 @@ class ChatbotView extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
+        backgroundColor: const Color(0xFF1E88E5), // same blue as Wallet
+        elevation: 0,
+        centerTitle: true,
         title: const Text(
           'CashPilot Assistant',
-          style: TextStyle(fontWeight: FontWeight.w600, fontSize: 18),
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+            fontSize: 18,
+          ),
         ),
-        centerTitle: true,
-        backgroundColor: Colors.white,
-        elevation: 0.5,
-        foregroundColor: Colors.black87,
+        leading: IconButton(
+          icon: const Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: Colors.white,
+            size: 20,
+          ),
+          onPressed: () => Get.back(),
+        ),
       ),
+
       body: Column(
         children: [
           // Messages list

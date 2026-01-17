@@ -18,6 +18,14 @@ class PayStreamingView extends GetView<PayStreamingController> {
           style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 20),
         ),
         centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: Colors.white,
+            size: 20,
+          ),
+          onPressed: () => Get.back(),
+        ),
       ),
       body: SingleChildScrollView(
         child: Padding(
