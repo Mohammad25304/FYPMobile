@@ -24,10 +24,10 @@ class HomeController extends GetxController {
         );
       }
 
-      // 🔄 Optional but recommended: refresh notifications list
-      if (Get.isRegistered<NotificationController>()) {
-        Get.find<NotificationController>().fetchNotifications();
-      }
+      // // 🔄 Optional but recommended: refresh notifications list
+      // if (Get.isRegistered<NotificationController>()) {
+      //   Get.find<NotificationController>().fetchNotifications();
+      // }
     });
   }
 
@@ -86,12 +86,12 @@ class HomeController extends GetxController {
     _initFirebaseForegroundListener();
   }
 
-  @override
-  void onReady() {
-    super.onReady();
+  // @override
+  // void onReady() {
+  //   super.onReady();
 
-    fetchDashboardData();
-  }
+  //   fetchDashboardData();
+  // }
 
   // Helper to get current balance based on selected currency
   double get currentBalance {

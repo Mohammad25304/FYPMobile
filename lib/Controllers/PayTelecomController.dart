@@ -1,22 +1,33 @@
+import 'package:cashpilot/Controllers/NotificationController.dart';
 import 'package:cashpilot/Core/Network/PaaymentApi.dart';
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
+import 'package:dio/dio.dart';
+import 'package:cashpilot/Core/Network/DioClient.dart';
 import 'WalletController.dart';
 import 'HomeController.dart';
 
 class PayTelecomController extends GetxController {
   final PaymentApi _api = PaymentApi();
-  final selectedCurrency = 'USD'.obs;
-  final selectedCountryCode = '+961'.obs; // ✅ ADD THIS
-  final selectedCountry = 'Lebanon'.obs; // ✅ ADD THIS
+  final Dio _dio = DioClient().getInstance();
 
-  final WalletController walletController = Get.put(WalletController());
-  final HomeController homeController = Get.find();
+  final selectedCurrency = 'USD'.obs;
+  final selectedCountryCode = '+961'.obs;
+  final selectedCountry = 'Lebanon'.obs;
+
+  final WalletController walletController = Get.find<WalletController>();
+  final HomeController homeController = Get.find<HomeController>();
 
   late Map<String, dynamic> provider;
 
   final phoneController = TextEditingController();
   final amountController = TextEditingController();
+
+  // 🔐 FEES (backend-driven)
+  final amount = 0.0.obs;
+  final fee = 0.0.obs;
+  final total = 0.0.obs;
+  final isFetchingFee = false.obs;
 
   var isLoading = false.obs;
 
@@ -31,6 +42,51 @@ class PayTelecomController extends GetxController {
     print('   ID: ${provider['id']}');
     print('   Code: ${provider['code']}');
     print('   Name: ${provider['name']}');
+
+    // Listen to amount changes
+    amountController.addListener(() {
+      amount.value = double.tryParse(amountController.text) ?? 0;
+      fetchFeePreview();
+    });
+  }
+
+  // Update fees when currency changes
+  void onCurrencyChanged(String currency) {
+    selectedCurrency.value = currency;
+    fetchFeePreview();
+  }
+
+  // =============================
+  // 🔐 FEE PREVIEW
+  // =============================
+  Future<void> fetchFeePreview() async {
+    if (amount.value <= 0) {
+      fee.value = 0;
+      total.value = 0;
+      return;
+    }
+
+    try {
+      isFetchingFee.value = true;
+
+      final response = await _dio.post(
+        "fees/preview",
+        data: {
+          "context": "bill_payment",
+          "service_id": provider['id'],
+          "currency": selectedCurrency.value,
+          "amount": amount.value,
+        },
+      );
+
+      fee.value = (response.data['fee'] ?? 0).toDouble();
+      total.value = (response.data['total'] ?? amount.value).toDouble();
+    } catch (e) {
+      fee.value = 0;
+      total.value = amount.value;
+    } finally {
+      isFetchingFee.value = false;
+    }
   }
 
   Future<void> pay() async {
@@ -89,6 +145,9 @@ class PayTelecomController extends GetxController {
       await walletController.fetchWalletData();
       await homeController.fetchDashboardData();
 
+      final notificationController = Get.find<NotificationController>();
+      await notificationController.fetchNotifications();
+
       Get.snackbar(
         'Payment Successful ✅',
         'Your telecom recharge was completed successfully.',
@@ -113,5 +172,12 @@ class PayTelecomController extends GetxController {
     } finally {
       isLoading.value = false;
     }
+  }
+
+  @override
+  void onClose() {
+    phoneController.dispose();
+    amountController.dispose();
+    super.onClose();
   }
 }

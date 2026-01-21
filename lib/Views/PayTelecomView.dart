@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../Controllers/PayTelecomController.dart';
-import 'package:flutter/services.dart'; // ✅ ADD THIS IMPORT
+import 'package:flutter/services.dart';
 
 class PayTelecomView extends GetView<PayTelecomController> {
   const PayTelecomView({super.key});
@@ -36,6 +36,8 @@ class PayTelecomView extends GetView<PayTelecomController> {
               _providerCard(),
               const SizedBox(height: 32),
               _paymentForm(),
+              const SizedBox(height: 24),
+              _feeBreakdown(),
               const SizedBox(height: 32),
               _payButton(),
               const SizedBox(height: 20),
@@ -113,9 +115,9 @@ class PayTelecomView extends GetView<PayTelecomController> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
+          const Text(
             'Payment Details',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
               color: Color(0xFF2C3E50),
@@ -165,11 +167,7 @@ class PayTelecomView extends GetView<PayTelecomController> {
           controller: controller,
           keyboardType: keyboardType,
           inputFormatters: keyboardType == TextInputType.number
-              ? [
-                  FilteringTextInputFormatter.allow(
-                    RegExp(r'^\d+\.?\d{0,2}'),
-                  ), // ✅ ONLY NUMBERS
-                ]
+              ? [FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}'))]
               : null,
           decoration: InputDecoration(
             hintText: hint,
@@ -234,7 +232,7 @@ class PayTelecomView extends GetView<PayTelecomController> {
                     border: Border.all(color: Colors.grey[300]!),
                   ),
                   child: DropdownButtonFormField<String>(
-                    value: controller.selectedCountry.value, // ✅ USE CONTROLLER
+                    value: controller.selectedCountry.value,
                     decoration: InputDecoration(
                       prefixIcon: const Icon(
                         Icons.public,
@@ -258,12 +256,9 @@ class PayTelecomView extends GetView<PayTelecomController> {
                         .toList(),
                     onChanged: (value) {
                       if (value != null) {
-                        controller.selectedCountry.value =
-                            value; // ✅ UPDATE CONTROLLER
+                        controller.selectedCountry.value = value;
                         controller.selectedCountryCode.value =
-                            countryData[value]!
-                                .keys
-                                .first; // ✅ UPDATE CONTROLLER
+                            countryData[value]!.keys.first;
                       }
                     },
                     isExpanded: true,
@@ -279,9 +274,7 @@ class PayTelecomView extends GetView<PayTelecomController> {
                     border: Border.all(color: Colors.grey[300]!),
                   ),
                   child: DropdownButtonFormField<String>(
-                    value: controller
-                        .selectedCountryCode
-                        .value, // ✅ USE CONTROLLER
+                    value: controller.selectedCountryCode.value,
                     decoration: InputDecoration(
                       border: InputBorder.none,
                       contentPadding: const EdgeInsets.symmetric(
@@ -302,8 +295,7 @@ class PayTelecomView extends GetView<PayTelecomController> {
                         .toList(),
                     onChanged: (value) {
                       if (value != null) {
-                        controller.selectedCountryCode.value =
-                            value; // ✅ UPDATE CONTROLLER
+                        controller.selectedCountryCode.value = value;
                       }
                     },
                     isExpanded: true,
@@ -317,9 +309,7 @@ class PayTelecomView extends GetView<PayTelecomController> {
         TextField(
           controller: controller.phoneController,
           keyboardType: TextInputType.phone,
-          inputFormatters: [
-            FilteringTextInputFormatter.digitsOnly, // ✅ ONLY DIGITS
-          ],
+          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
           decoration: InputDecoration(
             hintText: 'Enter phone number',
             hintStyle: TextStyle(color: Colors.grey[400]),
@@ -395,12 +385,156 @@ class PayTelecomView extends GetView<PayTelecomController> {
               ],
               onChanged: (value) {
                 if (value != null) {
-                  controller.selectedCurrency.value = value;
+                  controller.onCurrencyChanged(value);
                 }
               },
               isExpanded: true,
             ),
           ),
+        ),
+      ],
+    );
+  }
+
+  Widget _feeBreakdown() {
+    return Obx(() {
+      if (controller.amount.value <= 0) {
+        return const SizedBox.shrink();
+      }
+
+      return Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              const Color(0xFF1E88E5).withOpacity(0.1),
+              const Color(0xFF1565C0).withOpacity(0.05),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: const Color(0xFF1E88E5).withOpacity(0.2),
+            width: 1,
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(
+                  Icons.receipt_long,
+                  color: Color(0xFF1E88E5),
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                const Text(
+                  'Payment Summary',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF2C3E50),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            _buildFeeRow(
+              'Amount',
+              controller.amount.value,
+              controller.selectedCurrency.value,
+              false,
+            ),
+            const SizedBox(height: 10),
+            controller.isFetchingFee.value
+                ? _buildLoadingRow()
+                : _buildFeeRow(
+                    'Processing Fee',
+                    controller.fee.value,
+                    controller.selectedCurrency.value,
+                    false,
+                  ),
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 12),
+              child: Divider(thickness: 1, color: Color(0xFF1E88E5)),
+            ),
+            _buildFeeRow(
+              'Total',
+              controller.total.value,
+              controller.selectedCurrency.value,
+              true,
+            ),
+          ],
+        ),
+      );
+    });
+  }
+
+  Widget _buildFeeRow(
+    String label,
+    double value,
+    String currency,
+    bool isTotal,
+  ) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: isTotal ? 16 : 14,
+            fontWeight: isTotal ? FontWeight.w600 : FontWeight.w500,
+            color: isTotal ? const Color(0xFF2C3E50) : const Color(0xFF5A6C7D),
+          ),
+        ),
+        Text(
+          '${value.toStringAsFixed(2)} $currency',
+          style: TextStyle(
+            fontSize: isTotal ? 18 : 14,
+            fontWeight: isTotal ? FontWeight.w700 : FontWeight.w500,
+            color: isTotal ? const Color(0xFF1E88E5) : const Color(0xFF2C3E50),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLoadingRow() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        const Text(
+          'Processing Fee',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: Color(0xFF5A6C7D),
+          ),
+        ),
+        Row(
+          children: [
+            SizedBox(
+              height: 12,
+              width: 12,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor: AlwaysStoppedAnimation(
+                  const Color(0xFF1E88E5).withOpacity(0.6),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'Calculating...',
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey[600],
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ],
         ),
       ],
     );
@@ -423,24 +557,45 @@ class PayTelecomView extends GetView<PayTelecomController> {
             ),
           ),
           child: controller.isLoading.value
-              ? SizedBox(
-                  height: 24,
-                  width: 24,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2.5,
-                    valueColor: AlwaysStoppedAnimation(
-                      Colors.white.withOpacity(0.9),
+              ? Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SizedBox(
+                      height: 24,
+                      width: 24,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.5,
+                        valueColor: AlwaysStoppedAnimation(
+                          Colors.white.withOpacity(0.9),
+                        ),
+                      ),
                     ),
-                  ),
+                    const SizedBox(width: 12),
+                    const Text(
+                      'Processing...',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
                 )
-              : const Text(
-                  'Pay Now',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                    letterSpacing: 0.5,
-                  ),
+              : Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.payment, color: Colors.white, size: 20),
+                    const SizedBox(width: 10),
+                    const Text(
+                      'Pay Now',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ],
                 ),
         ),
       ),

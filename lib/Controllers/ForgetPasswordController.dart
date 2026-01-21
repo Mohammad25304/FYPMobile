@@ -9,8 +9,8 @@ import 'package:cashpilot/Bindings/ResetPasswordBinding.dart';
 class ForgetPasswordController extends GetxController {
   final Dio dio = Dio();
 
-  // ✅ Update this to your actual backend IP
-  final String baseUrl = 'http://192.168.1.68:8000/api';
+  
+  final String baseUrl = 'http://192.168.98.86:8000/api';
 
   // Text Controllers
   late TextEditingController emailController;
