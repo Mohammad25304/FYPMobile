@@ -14,12 +14,8 @@ import 'package:intl/intl.dart';
 class Payment extends GetView<PaymentController> {
   Payment({super.key});
 
-  // Register the controller
-
   @override
   Widget build(BuildContext context) {
-    // Load payments (you can move this to controller.onInit if you prefer)
-
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
@@ -37,36 +33,35 @@ class Payment extends GetView<PaymentController> {
           return const Center(child: CircularProgressIndicator());
         }
 
-        return Column(
-          children: [
-            _buildFilterHeader(context),
-            const Divider(height: 1),
-            Expanded(
-              child: controller.payments.isEmpty
-                  ? _buildEmptyState(context)
-                  : ListView.builder(
-                      padding: const EdgeInsets.all(16),
-                      itemCount: controller.payments.length,
-                      itemBuilder: (context, index) {
-                        final item = controller.payments[index];
-                        final bool isSent = item['direction'] == 'sent';
-                        final bool isReceived = item['direction'] == 'received';
-
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
-                          child: _buildPaymentCard(context, item),
-                        );
-                      },
-                    ),
-            ),
-          ],
+        return RefreshIndicator(
+          onRefresh: controller.fetchPayments,
+          color: const Color(0xFF1E88E5),
+          child: Column(
+            children: [
+              _buildFilterHeader(context),
+              const Divider(height: 1),
+              Expanded(
+                child: controller.payments.isEmpty
+                    ? _buildEmptyState(context)
+                    : ListView.builder(
+                        padding: const EdgeInsets.all(16),
+                        itemCount: controller.payments.length,
+                        itemBuilder: (context, index) {
+                          final item = controller.payments[index];
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: _buildPaymentCard(context, item),
+                          );
+                        },
+                      ),
+              ),
+            ],
+          ),
         );
       }),
       bottomNavigationBar: _buildBottomNavBar(),
     );
   }
-
-  // ---------------- FILTER HEADER (Calendar + Day/Week/Month/Year) ----------------
 
   Widget _buildFilterHeader(BuildContext context) {
     return Obx(() {
@@ -100,7 +95,6 @@ class Payment extends GetView<PaymentController> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Top row: label + date + calendar icon
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -139,7 +133,6 @@ class Payment extends GetView<PaymentController> {
               ],
             ),
             const SizedBox(height: 8),
-            // Chips for Day / Week / Month / Year
             Wrap(
               spacing: 8,
               children: [
@@ -175,47 +168,48 @@ class Payment extends GetView<PaymentController> {
     });
   }
 
-  // -------------------- EMPTY STATE --------------------
-
   Widget _buildEmptyState(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.receipt_long, size: 64, color: Colors.grey[300]),
-          const SizedBox(height: 16),
-          Text(
-            "No Payments Yet",
-            style: Theme.of(
-              context,
-            ).textTheme.headlineSmall?.copyWith(color: Colors.grey[600]),
+    return ListView(
+      children: [
+        SizedBox(
+          height: MediaQuery.of(context).size.height * 0.6,
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.receipt_long, size: 64, color: Colors.grey[300]),
+                const SizedBox(height: 16),
+                Text(
+                  "No Payments Yet",
+                  style: Theme.of(
+                    context,
+                  ).textTheme.headlineSmall?.copyWith(color: Colors.grey[600]),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  "Your payment history will appear here",
+                  style: TextStyle(color: Colors.grey[500]),
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            "Your payment history will appear here",
-            style: TextStyle(color: Colors.grey[500]),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
-  // -------------------- PAYMENT CARD --------------------
-
   Widget _buildPaymentCard(BuildContext context, Map item) {
-    final bool isSent = item['direction'] == 'sent';
-    final bool isReceived = item['direction'] == 'received';
+    // ✅ Use type from backend (debit/credit)
+    final bool isDebit = item['type'] == 'debit';
+    final String title = item['title'] ?? 'Transaction';
+    final String category = item['category'] ?? 'transfer';
 
-    final String title = isSent
-        ? "Sent to ${item['to'] ?? 'User'}"
-        : "Received from ${item['from'] ?? 'User'}";
-
-    final String badgeText = isSent ? 'Sent' : 'Received';
-
-    final Color mainColor = isSent ? Colors.red : Colors.green;
-    final IconData icon = isSent
-        ? Icons.arrow_upward_rounded
-        : Icons.arrow_downward_rounded;
+    // ✅ Color and icon based on TYPE (not category)
+    final Color mainColor = isDebit ? Colors.red : Colors.green;
+    final IconData icon = isDebit
+        ? Icons
+              .arrow_upward_rounded // ↑ Money leaving (RED)
+        : Icons.arrow_downward_rounded; // ↓ Money coming in (GREEN)
 
     return Container(
       decoration: BoxDecoration(
@@ -233,7 +227,7 @@ class Payment extends GetView<PaymentController> {
         padding: const EdgeInsets.all(16),
         child: Row(
           children: [
-            // ICON
+            // ✅ ICON (based on type)
             Container(
               width: 50,
               height: 50,
@@ -273,8 +267,9 @@ class Payment extends GetView<PaymentController> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
+                // ✅ Amount sign based on type
                 Text(
-                  "${isSent ? '-' : '+'}${item["currency"]} ${item["amount"].toStringAsFixed(2)}",
+                  "${isDebit ? '-' : '+'}${item["currency"]} ${item["amount"].toStringAsFixed(2)}",
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 14,
@@ -282,6 +277,7 @@ class Payment extends GetView<PaymentController> {
                   ),
                 ),
                 const SizedBox(height: 4),
+                // ✅ Badge text based on category
                 Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 8,
@@ -292,7 +288,7 @@ class Payment extends GetView<PaymentController> {
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
-                    badgeText,
+                    category.toUpperCase(),
                     style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.w600,
@@ -307,8 +303,6 @@ class Payment extends GetView<PaymentController> {
       ),
     );
   }
-
-  // -------------------- BOTTOM NAV BAR --------------------
 
   Widget _buildBottomNavBar() {
     return Container(

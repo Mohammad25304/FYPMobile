@@ -18,7 +18,7 @@ class NotificationController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    // fetchNotifications(); ❌ REMOVE THIS
+    fetchNotifications();
   }
 
   // ✅ SAFE FETCH

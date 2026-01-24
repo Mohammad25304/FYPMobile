@@ -12,6 +12,7 @@ class ProfileController extends GetxController {
   var isSavingProfile = false.obs;
   var isChangingPassword = false.obs;
   var isDeleting = false.obs;
+  var isDeletingAccount = false.obs;
 
   // User data
   var firstName = ''.obs;
@@ -167,31 +168,33 @@ class ProfileController extends GetxController {
     }
   }
 
-  Future<void> deleteAccount() async {
-    try {
-      isDeleting.value = true;
+  Future<void> deleteAccount({required String password}) async {
+    {
+      try {
+        isDeletingAccount.value = true;
 
-      await _dio.delete('profile');
+        await _dio.delete('profile', data: {'password': password});
 
-      // Clear session and go to login
-      await SessionManager.clearSession();
+        // Clear session and go to login
+        await SessionManager.clearSession();
 
-      if (Get.isRegistered<LoginController>()) {
-        Get.find<LoginController>().clearFields();
+        if (Get.isRegistered<LoginController>()) {
+          Get.find<LoginController>().clearFields();
+        }
+
+        Get.offAllNamed('/login');
+      } catch (e) {
+        debugPrint('❌ Error deleting account: $e');
+        Get.snackbar(
+          'Error',
+          'Failed to delete account',
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+          snackPosition: SnackPosition.BOTTOM,
+        );
+      } finally {
+        isDeleting.value = false;
       }
-
-      Get.offAllNamed('/login');
-    } catch (e) {
-      debugPrint('❌ Error deleting account: $e');
-      Get.snackbar(
-        'Error',
-        'Failed to delete account',
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-        snackPosition: SnackPosition.BOTTOM,
-      );
-    } finally {
-      isDeleting.value = false;
     }
   }
 }

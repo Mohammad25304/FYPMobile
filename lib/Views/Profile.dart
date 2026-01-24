@@ -845,7 +845,11 @@ class Profile extends GetView<ProfileController> {
           ElevatedButton(
             onPressed: controller.isDeleting.value
                 ? null
-                : () => controller.deleteAccount(),
+                : () {
+                    Get.back();
+                    _showDeleteAccountSheet();
+                  },
+
             style: ElevatedButton.styleFrom(
               backgroundColor: errorRed,
               foregroundColor: Colors.white,
@@ -872,6 +876,84 @@ class Profile extends GetView<ProfileController> {
           ),
         ],
       ),
+    );
+  }
+
+  void _showDeleteAccountSheet() {
+    final passwordCtrl = TextEditingController();
+    final confirm = false.obs;
+
+    Get.bottomSheet(
+      _buildSheetWrapper(
+        title: 'Confirm Account Deletion',
+        child: Column(
+          children: [
+            _buildTextField(
+              controller: passwordCtrl,
+              label: 'Password',
+              icon: Icons.lock_outline,
+              isPassword: true,
+            ),
+            const SizedBox(height: 16),
+
+            Row(
+              children: [
+                Obx(
+                  () => Checkbox(
+                    value: confirm.value,
+                    onChanged: (v) => confirm.value = v ?? false,
+                    activeColor: errorRed,
+                  ),
+                ),
+                const Expanded(
+                  child: Text(
+                    'I understand this action is permanent',
+                    style: TextStyle(fontSize: 13),
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 24),
+
+            SizedBox(
+              width: double.infinity,
+              child: Obx(
+                () => ElevatedButton(
+                  onPressed:
+                      controller.isDeletingAccount.value || !confirm.value
+                      ? null
+                      : () {
+                          controller.deleteAccount(password: passwordCtrl.text);
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: errorRed,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                  child: controller.isDeletingAccount.value
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Text(
+                          'Delete My Account',
+                          style: TextStyle(fontWeight: FontWeight.w700),
+                        ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+      isScrollControlled: true,
     );
   }
 }

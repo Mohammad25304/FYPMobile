@@ -26,20 +26,31 @@ class PaymentController extends GetxController {
       final response = await _dio.get("payments");
       final List list = response.data["payments"] ?? [];
 
+      // 🔍 DEBUG
+      print("========== DEBUG: PAYMENTS FROM API ==========");
+      for (var p in list) {
+        print("Title: ${p['title']}");
+        print("  Type: ${p['type']}");
+        print("  Amount: ${p['amount']}");
+        print("  Category: ${p['category']}");
+        print("---");
+      }
+      print("==============================================");
+
       allPayments.assignAll(
         list.map<Map<String, dynamic>>((p) {
+          // ✅ CRITICAL: Keep the type from backend, don't override it
+          final type = p['type'] ?? 'debit';
+          final amount = double.tryParse('${p['amount']}') ?? 0.0;
+
           return {
+            'id': p['id'],
             'title': p['title'] ?? 'Transaction',
-            'amount': double.tryParse(p['amount']?.toString() ?? '0') ?? 0.0,
+            'amount': amount,
             'currency': p['currency'] ?? 'USD',
-
-            // 🔑 KEEP THESE
-            'direction': p['direction'], // sent | received
-            'from': p['from'],
-            'to': p['to'],
-
-            'type': p['type'], // optional
-            'category': p['category'],
+            'type': type, // ✅ DON'T change this based on category
+            'category': p['category'] ?? 'transfer',
+            'date': p['transacted_at']?.toString().substring(0, 10) ?? '',
             'transacted_at': p['transacted_at'],
           };
         }).toList(),
@@ -47,6 +58,7 @@ class PaymentController extends GetxController {
 
       applyFilter();
     } catch (e) {
+      print("❌ ERROR: $e");
       Get.snackbar("Error", "Failed to load payments");
     } finally {
       isLoading.value = false;
@@ -102,6 +114,11 @@ class PaymentController extends GetxController {
         return true;
       }
     }).toList();
+
+    print("✅ FILTERED PAYMENTS: ${filtered.length}");
+    for (var p in filtered) {
+      print("  - ${p['title']}: type=${p['type']}, amount=${p['amount']}");
+    }
 
     payments.assignAll(filtered);
   }
