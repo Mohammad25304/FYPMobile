@@ -52,13 +52,13 @@ class Profile extends GetView<ProfileController> {
     return Scaffold(
       backgroundColor: backgroundGray,
       appBar: AppBar(
-        backgroundColor: primaryBlue, // ✅ blue like Wallet
+        backgroundColor: primaryBlue,
         elevation: 0,
         centerTitle: true,
         title: const Text(
           'My Profile',
           style: TextStyle(
-            color: Colors.white, // ✅ white text
+            color: Colors.white,
             fontWeight: FontWeight.w800,
             fontSize: 20,
           ),
@@ -66,13 +66,12 @@ class Profile extends GetView<ProfileController> {
         leading: IconButton(
           icon: const Icon(
             Icons.arrow_back_ios_new_rounded,
-            color: Colors.white, // ✅ white back icon
+            color: Colors.white,
             size: 20,
           ),
           onPressed: () => Get.back(),
         ),
       ),
-
       body: SafeArea(
         child: Obx(
           () => controller.isLoading.value
@@ -151,32 +150,58 @@ class Profile extends GetView<ProfileController> {
         children: [
           Stack(
             children: [
-              Container(
-                padding: const EdgeInsets.all(4),
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                ),
-                child: CircleAvatar(
-                  radius: 45,
-                  backgroundColor: backgroundGray,
-                  backgroundImage: controller.avatarUrl.value.isNotEmpty
-                      ? NetworkImage(controller.avatarUrl.value)
-                      : null,
-                  child: controller.avatarUrl.value.isEmpty
-                      ? Text(
-                          controller.name.value.isNotEmpty
-                              ? controller.name.value[0].toUpperCase()
-                              : 'U',
-                          style: const TextStyle(
-                            fontSize: 36,
-                            fontWeight: FontWeight.w800,
-                            color: primaryBlue,
+              // Avatar with loading indicator
+              Obx(
+                () => Stack(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                      ),
+                      child: CircleAvatar(
+                        radius: 45,
+                        backgroundColor: backgroundGray,
+                        backgroundImage: controller.avatarUrl.value.isNotEmpty
+                            ? NetworkImage(controller.avatarUrl.value)
+                            : null,
+                        child: controller.avatarUrl.value.isEmpty
+                            ? Text(
+                                controller.name.value.isNotEmpty
+                                    ? controller.name.value[0].toUpperCase()
+                                    : 'U',
+                                style: const TextStyle(
+                                  fontSize: 36,
+                                  fontWeight: FontWeight.w800,
+                                  color: primaryBlue,
+                                ),
+                              )
+                            : null,
+                      ),
+                    ),
+                    // Loading overlay
+                    if (controller.isUploadingAvatar.value)
+                      Positioned.fill(
+                        child: Container(
+                          margin: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.5),
+                            shape: BoxShape.circle,
                           ),
-                        )
-                      : null,
+                          child: const Center(
+                            child: CircularProgressIndicator(
+                              strokeWidth: 3,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
               ),
+
+              // Status badge
               Positioned(
                 bottom: 0,
                 right: 0,
@@ -190,6 +215,31 @@ class Profile extends GetView<ProfileController> {
                     Icons.verified_rounded,
                     size: 22,
                     color: _statusColor(controller.status.value),
+                  ),
+                ),
+              ),
+
+              // Camera button
+              Positioned(
+                top: 0,
+                right: 0,
+                child: Material(
+                  color: Colors.white,
+                  shape: const CircleBorder(),
+                  child: InkWell(
+                    onTap: controller.isUploadingAvatar.value
+                        ? null
+                        : () => controller.showImageSourceDialog(),
+                    customBorder: const CircleBorder(),
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: const BoxDecoration(shape: BoxShape.circle),
+                      child: const Icon(
+                        Icons.camera_alt_rounded,
+                        size: 18,
+                        color: primaryBlue,
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -605,7 +655,7 @@ class Profile extends GetView<ProfileController> {
     );
   }
 
-  // Sheets and Dialogs (Maintained logic, improved UI)
+  // Sheets and Dialogs
   void _showEditProfileSheet() {
     final firstNameCtrl = TextEditingController(
       text: controller.firstName.value,
@@ -849,7 +899,6 @@ class Profile extends GetView<ProfileController> {
                     Get.back();
                     _showDeleteAccountSheet();
                   },
-
             style: ElevatedButton.styleFrom(
               backgroundColor: errorRed,
               foregroundColor: Colors.white,
@@ -895,7 +944,6 @@ class Profile extends GetView<ProfileController> {
               isPassword: true,
             ),
             const SizedBox(height: 16),
-
             Row(
               children: [
                 Obx(
@@ -913,9 +961,7 @@ class Profile extends GetView<ProfileController> {
                 ),
               ],
             ),
-
             const SizedBox(height: 24),
-
             SizedBox(
               width: double.infinity,
               child: Obx(

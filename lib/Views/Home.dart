@@ -190,23 +190,29 @@ class Home extends GetView<HomeController> {
         child: Obx(
           () => controller.isLoading.value
               ? const Center(child: CircularProgressIndicator())
-              : SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 16,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildWalletCard(),
-                      const SizedBox(height: 24),
-                      _buildQuickActions(),
-                      const SizedBox(height: 28),
-                      _buildServicesSection(),
-                      const SizedBox(height: 28),
-                      _buildRecentTransactions(),
-                      const SizedBox(height: 16),
-                    ],
+              : RefreshIndicator(
+                  onRefresh: controller.fetchDashboardData,
+                  color: const Color(0xFF1E88E5),
+                  backgroundColor: Colors.white,
+                  child: SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 16,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildWalletCard(),
+                        const SizedBox(height: 24),
+                        _buildQuickActions(),
+                        const SizedBox(height: 28),
+                        _buildServicesSection(),
+                        const SizedBox(height: 28),
+                        _buildRecentTransactions(),
+                        const SizedBox(height: 16),
+                      ],
+                    ),
                   ),
                 ),
         ),

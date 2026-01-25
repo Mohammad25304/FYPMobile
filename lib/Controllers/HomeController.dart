@@ -24,10 +24,10 @@ class HomeController extends GetxController {
         );
       }
 
-      // // 🔄 Optional but recommended: refresh notifications list
-      // if (Get.isRegistered<NotificationController>()) {
-      //   Get.find<NotificationController>().fetchNotifications();
-      // }
+      // 🔄 Optional but recommended: refresh notifications list
+      if (Get.isRegistered<NotificationController>()) {
+        Get.find<NotificationController>().fetchNotifications();
+      }
     });
   }
 
@@ -68,7 +68,6 @@ class HomeController extends GetxController {
     {'name': 'Internet', 'icon': 'wifi'},
     {'name': 'Student', 'icon': 'school'},
     {'name': 'Electricity', 'icon': 'bolt'},
-    {'name': 'Water', 'icon': 'water'},
     {'name': 'Government', 'icon': 'account_balance'},
   ].obs;
 
@@ -82,16 +81,16 @@ class HomeController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+
+    // ✅ Initialize NotificationController FIRST and keep it permanent
+    // Using Get.put with permanent: true ensures it stays in memory
+    if (!Get.isRegistered<NotificationController>()) {
+      Get.put(NotificationController(), permanent: true);
+    }
+
     fetchDashboardData();
     _initFirebaseForegroundListener();
   }
-
-  // @override
-  // void onReady() {
-  //   super.onReady();
-
-  //   fetchDashboardData();
-  // }
 
   // Helper to get current balance based on selected currency
   double get currentBalance {
@@ -113,30 +112,8 @@ class HomeController extends GetxController {
       // Fetch dashboard data
       Response response = await _dio.get('dashboard');
 
-      // Example expected JSON:
-      // {
-      //   "user": {"name": "Mohammad"},
-      //   "wallet": {
-      //     "currency_balances": {
-      //       "USD": 250.75,
-      //       "EUR": 230.50,
-      //       "LBP": 22437500
-      //     },
-      //     "default_currency": "USD",
-      //     "stats": {
-      //       "income": 1500.00,
-      //       "expenses": 850.25
-      //     }
-      //   },
-      //   "recent_transactions": [
-      //      {"title": "Touch Recharge", "amount": -20.0, "date": "2025-11-21", "type": "debit"},
-      //      ...
-      //   ]
-      // }
-
       final data = response.data;
 
-      // User info
       // User info
       final user = data['user'] ?? {};
 

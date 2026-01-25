@@ -18,11 +18,6 @@ class Wallet extends GetView<WalletController> {
 
   @override
   Widget build(BuildContext context) {
-    // ❌ REMOVE this (it runs on every rebuild and can break your list)
-    // WidgetsBinding.instance.addPostFrameCallback((_) {
-    //   controller.fetchTransactions();
-    // });
-
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       extendBodyBehindAppBar: false,
@@ -58,7 +53,6 @@ class Wallet extends GetView<WalletController> {
             ),
             child: IconButton(
               onPressed: () {
-                // ✅ refresh wallet after returning from Payments
                 Get.to(() => Payment())?.then((_) => controller.refreshAll());
               },
               icon: const Icon(Icons.history_rounded, color: Colors.white),
@@ -67,19 +61,27 @@ class Wallet extends GetView<WalletController> {
         ],
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _walletCard(),
-              const SizedBox(height: 28),
-              _quickStats(),
-              const SizedBox(height: 28),
-              _actionButtons(),
-              const SizedBox(height: 32),
-              _recentTransactions(),
-            ],
+        child: RefreshIndicator(
+          onRefresh: () async {
+            await controller.refreshAll();
+          },
+          color: const Color(0xFF1E88E5),
+          backgroundColor: Colors.white,
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _walletCard(),
+                const SizedBox(height: 28),
+                _quickStats(),
+                const SizedBox(height: 28),
+                _actionButtons(),
+                const SizedBox(height: 32),
+                _recentTransactions(),
+              ],
+            ),
           ),
         ),
       ),
@@ -626,15 +628,12 @@ class Wallet extends GetView<WalletController> {
         return const SizedBox.shrink();
       }
 
-      // 🔒 LIMIT TO 5 TRANSACTIONS
       final limitedTx = controller.walletTransactions.take(5).toList();
-
       final groupedTx = groupByDay(limitedTx);
 
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -663,14 +662,12 @@ class Wallet extends GetView<WalletController> {
           ),
           const SizedBox(height: 16),
 
-          // Grouped + collapsible
           ...groupedTx.entries.map((entry) {
             final isExpanded = expandedDays[entry.key] ?? true;
 
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // 🔽 DAY HEADER (CLICKABLE)
                 InkWell(
                   onTap: () {
                     expandedDays[entry.key] = !isExpanded;
@@ -724,7 +721,6 @@ class Wallet extends GetView<WalletController> {
                   ),
                 ),
 
-                // 🔹 TRANSACTIONS (COLLAPSIBLE)
                 if (isExpanded)
                   Padding(
                     padding: const EdgeInsets.only(top: 4, left: 16),
@@ -776,7 +772,6 @@ class Wallet extends GetView<WalletController> {
                                 ),
                                 child: Row(
                                   children: [
-                                    // Icon with category color background
                                     Container(
                                       width: 44,
                                       height: 44,
@@ -794,7 +789,6 @@ class Wallet extends GetView<WalletController> {
                                     ),
                                     const SizedBox(width: 14),
 
-                                    // Title & Category
                                     Expanded(
                                       child: Column(
                                         crossAxisAlignment:
@@ -826,7 +820,6 @@ class Wallet extends GetView<WalletController> {
                                     ),
                                     const SizedBox(width: 8),
 
-                                    // Amount with sign
                                     Column(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.end,
@@ -871,7 +864,6 @@ class Wallet extends GetView<WalletController> {
     });
   }
 
-  // Helper: Get category icon
   IconData _getCategoryIcon(String category) {
     switch (category.toLowerCase()) {
       case 'transfer':
@@ -893,7 +885,6 @@ class Wallet extends GetView<WalletController> {
     }
   }
 
-  // Helper: Get category color
   Color _getCategoryColor(String category) {
     switch (category.toLowerCase()) {
       case 'transfer':
@@ -915,7 +906,6 @@ class Wallet extends GetView<WalletController> {
     }
   }
 
-  // Helper: Format category label
   String _formatCategory(String category) {
     switch (category.toLowerCase()) {
       case 'transfer':
